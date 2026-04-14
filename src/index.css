@@ -1,0 +1,94 @@
+:root {
+  /* Colors - Reference: Olive & Cream */
+  --primary-olive: #3D4931;
+  --bg-cream: #f4f1ea;
+  --white: #ffffff;
+  --text-olive: #3D4931;
+  --text-dark: #262F00;
+  --gold-accent: #c5a059;
+  
+  /* Envelope & Green Variations */
+  --primary-green: #3D4931;
+  --dark-green: #262F00;
+  --light-olive: #6E814C;
+  --parchment: #fdfaf3;
+  --cream: #f4f1ea;
+  --gold: #c5a059;
+  
+  /* Shared Layers */
+  --shadow-subtle: 0 4px 20px rgba(0,0,0,0.03);
+  --shadow-strong: 0 10px 30px rgba(0,0,0,0.08);
+
+  --font-serif: 'Cormorant Garamond', serif;
+  --font-script: 'Pinyon Script', cursive;
+  --font-sans: 'Inter', sans-serif;
+  
+  --transition-smooth: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-olive) transparent;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-cream);
+  color: var(--text-dark);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .serif {
+  font-family: var(--font-serif);
+}
+
+.script {
+  font-family: var(--font-script);
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+  transition: var(--transition-smooth);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gold-accent);
+  transform-origin: 0%;
+  z-index: 10000;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--primary-olive);
+  border-radius: 10px;
+}

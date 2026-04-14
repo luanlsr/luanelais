@@ -1,0 +1,391 @@
+/* ============================================
+   SHARED PAGE STYLES
+   Full-screen overlay pages for the invitation
+   ============================================ */
+
+.page-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  background-color: var(--white, #faf9f6);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-inner {
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5rem 2rem 4rem;
+  overflow: hidden;
+}
+
+/* Decorative flower - top right, does NOT cover content */
+.page-flower-deco {
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 160px;
+  opacity: 0.5;
+  pointer-events: none;
+  transform: scaleX(-1);
+  z-index: 0;
+}
+
+.page-flower-deco img {
+  width: 100%;
+}
+
+/* Back button */
+.page-back-btn {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--primary-olive, #6E814C);
+  opacity: 0.7;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: opacity 0.2s, gap 0.2s;
+  z-index: 10;
+}
+
+.page-back-btn:hover {
+  opacity: 1;
+  gap: 0.75rem;
+}
+
+/* Content wrapper ensures z-index above the flower */
+.page-content-wrap {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Typography */
+.page-eyebrow {
+  font-size: 0.65rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  opacity: 0.45;
+  margin-bottom: 0.5rem;
+}
+
+.page-title-script {
+  font-family: var(--font-script, Georgia);
+  font-size: 3.5rem;
+  color: var(--primary-olive, #6E814C);
+  font-weight: 400;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: 0.7rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  opacity: 0.5;
+  margin-top: 0.4rem;
+}
+
+.page-divider {
+  width: 40px;
+  height: 1px;
+  background: var(--gold-accent, #c5a059);
+  margin: 1.5rem auto;
+  opacity: 0.6;
+}
+
+/* Primary CTA button */
+.page-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--primary-olive, #6E814C);
+  color: white;
+  padding: 1rem 2.5rem;
+  font-size: 0.7rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  margin-top: 2rem;
+  transition: background 0.3s, letter-spacing 0.3s;
+}
+
+.page-btn-primary:hover {
+  background: #262F00;
+  letter-spacing: 4px;
+}
+
+.page-btn-ghost {
+  background: none;
+  border: none;
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.4;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: opacity 0.2s;
+}
+
+.page-btn-ghost:hover { opacity: 0.8; }
+
+/* ============================================
+   LOCAL PAGE
+   ============================================ */
+.local-info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.local-info-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  font-size: 0.75rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+.map-container {
+  width: 100%;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+
+/* ============================================
+   RSVP PAGE
+   ============================================ */
+.rsvp-intro {
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  opacity: 0.65;
+  margin-bottom: 1.5rem;
+  line-height: 1.8;
+}
+
+.rsvp-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.input-custom {
+  width: 100%;
+  padding: 1.2rem 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(0,0,0,0.12);
+  font-family: var(--font-serif, Georgia);
+  font-size: 1.3rem;
+  margin-bottom: 2.5rem;
+  transition: border-color 0.3s;
+  text-align: center;
+  color: var(--text-dark);
+}
+
+.input-custom::placeholder { opacity: 0.3; font-size: 1rem; }
+.input-custom:focus { outline: none; border-bottom-color: var(--primary-olive, #6E814C); }
+
+.members-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.member-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border: 1px solid rgba(0,0,0,0.08);
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.member-card.selected {
+  border-color: var(--primary-olive, #6E814C);
+  background: rgba(110, 129, 76, 0.05);
+}
+
+.member-check {
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-olive);
+  flex-shrink: 0;
+}
+
+.member-card.selected .member-check {
+  border-color: var(--primary-olive);
+  background: var(--primary-olive);
+  color: white;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 3rem 0;
+  opacity: 0.6;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+}
+
+.spinner-floral {
+  width: 36px;
+  height: 36px;
+  border: 2px solid rgba(110,129,76,0.2);
+  border-top-color: var(--primary-olive);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.success-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 0;
+}
+
+.success-icon { color: var(--primary-olive, #6E814C); }
+
+.success-state h2 {
+  font-family: var(--font-serif, Georgia);
+  font-size: 2rem;
+  color: var(--primary-olive);
+}
+
+.success-state p {
+  font-size: 0.85rem;
+  opacity: 0.65;
+  letter-spacing: 1px;
+}
+
+/* ============================================
+   GIFTS PAGE
+   ============================================ */
+.gifts-message {
+  font-size: 0.82rem;
+  line-height: 2;
+  opacity: 0.65;
+  letter-spacing: 0.5px;
+  max-width: 380px;
+  margin-bottom: 2rem;
+}
+
+.qr-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.qr-frame {
+  width: 180px;
+  height: 180px;
+  border: 1px solid rgba(110,129,76,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+}
+
+.qr-logo-mock {
+  font-family: var(--font-script, Georgia);
+  font-size: 2.5rem;
+  color: var(--primary-olive, #6E814C);
+}
+
+.qr-label {
+  font-size: 0.6rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  opacity: 0.4;
+}
+
+.pix-key-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 380px;
+  background: rgba(110,129,76,0.04);
+  border: 1px solid rgba(110,129,76,0.12);
+  padding: 1.2rem 1.5rem;
+}
+
+.pix-key-text {
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  opacity: 0.7;
+  word-break: break-all;
+}
+
+.pix-copy-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--primary-olive);
+  background: none;
+  border: 1px solid var(--primary-olive);
+  padding: 0.5rem 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pix-copy-btn:hover {
+  background: var(--primary-olive);
+  color: white;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 480px) {
+  .page-inner { padding: 4rem 1.5rem 3rem; }
+  .page-title-script { font-size: 2.8rem; }
+  .page-flower-deco { width: 110px; }
+  .map-container iframe { height: 240px; }
+}

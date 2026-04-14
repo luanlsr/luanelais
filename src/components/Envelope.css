@@ -1,0 +1,278 @@
+.envelope-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--white);
+  z-index: 10000;
+  overflow: hidden;
+}
+
+.envelope-container-full {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.envelope-gate {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* DOORS / FLAPS */
+.door {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background-color: #262F00;
+  transition: transform 1.8s cubic-bezier(0.7, 0, 0.3, 1);
+  display: flex;
+}
+
+.door-left {
+  left: 0;
+  width: 66%;
+  transform-origin: left;
+  z-index: 101;
+  box-shadow: 10px 0 20px rgba(0,0,0,0.4);
+}
+
+.door-right {
+  right: 0;
+  width: 34.5%;
+  transform-origin: right;
+  z-index: 100;
+}
+
+.open .door-left {
+  transform: translateX(-100%);
+}
+
+.open .door-right {
+  transform: translateX(100%);
+}
+
+.door-texture {
+  display: none;
+}
+
+
+/* INVITATION CARD (FULL SCREEN) */
+.invitation-card-full {
+  position: absolute;
+  inset: 0;
+  background-color: var(--white);
+  z-index: 10;
+  padding: 3rem 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow-y: auto;
+  gap: 0;
+}
+
+.invitation-bg-flower {
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  left: auto;
+  width: 180px;
+  opacity: 0.6;
+  z-index: 1;
+  pointer-events: none;
+  transform: scaleX(-1);
+}
+
+.invitation-header { margin-bottom: 1rem; z-index: 2; }
+
+.parents-names {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 700px;
+  gap: 3rem;
+  margin-top: 0.75rem;
+}
+
+.parent-pair {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.6rem;
+  letter-spacing: 1.5px;
+  opacity: 0.45;
+  line-height: 1.6;
+}
+
+.invitation-names { margin: 1.2rem 0 0.8rem; z-index: 2; }
+
+.invitation-couple-names {
+  font-family: var(--font-serif);
+  font-size: 4rem;
+  color: var(--primary-olive);
+  text-transform: uppercase;
+  letter-spacing: 10px;
+  line-height: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 2;
+}
+
+.amp-gold {
+  color: var(--gold-accent);
+  font-family: var(--font-script);
+  font-size: 3.2rem;
+  text-transform: none;
+  letter-spacing: 0;
+  margin: -0.7rem 0;
+}
+
+.invitation-message {
+  max-width: 420px;
+  font-size: 0.72rem;
+  letter-spacing: 1.5px;
+  opacity: 0.65;
+  margin-bottom: 1.2rem;
+  line-height: 2;
+  z-index: 2;
+}
+
+.invitation-date-info {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+  border-top: 1px solid rgba(124, 134, 97, 0.15);
+  border-bottom: 1px solid rgba(124, 134, 97, 0.15);
+  padding: 1.2rem 3rem;
+  z-index: 2;
+}
+
+.date-col { display: flex; flex-direction: column; }
+.date-col .label { font-size: 0.62rem; opacity: 0.5; letter-spacing: 3px; }
+.date-col .value { font-family: var(--font-serif); font-size: 1.2rem; }
+
+.date-center {
+  font-family: var(--font-serif);
+  font-size: 3.5rem;
+  color: var(--primary-olive);
+  padding: 0 1.5rem;
+  border-left: 1px solid rgba(0,0,0,0.1);
+  border-right: 1px solid rgba(0,0,0,0.1);
+  line-height: 1;
+}
+
+.invitation-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 480px;
+  z-index: 2;
+}
+
+.action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.action-circle {
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  background: var(--primary-olive);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 25px rgba(124, 134, 97, 0.3);
+  transition: transform 0.3s;
+  cursor: pointer;
+}
+
+.action-circle:hover { transform: scale(1.1); }
+
+.action-item span {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.click-hint-bottom { font-size: 0.6rem; letter-spacing: 4px; opacity: 0.3; margin-top: 3rem; }
+
+/* REFINED WAX SEAL */
+.seal-trigger {
+  position: absolute;
+  top: 50%;
+  left: 66%;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.wax-seal-olive {
+  width: 140px; /* Slightly larger to show the irregular edges */
+  height: 140px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.seal-image-asset {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: screen; /* Makes BLACK transparent */
+  filter: contrast(1.1) brightness(1.2) drop-shadow(0 10px 20px rgba(0,0,0,0.4));
+  transition: transform 0.3s;
+}
+
+.seal-text-script {
+  position: absolute;
+  top: 130px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-script);
+  font-size: 1.8rem;
+  color: var(--gold-accent);
+  white-space: nowrap;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 768px) {
+  .invitation-card-full { padding: 2rem 1.5rem 1.5rem; justify-content: flex-start; padding-top: 2.5rem; }
+  .invitation-couple-names { font-size: 3rem; letter-spacing: 6px; }
+  .amp-gold { font-size: 2.5rem; }
+  .date-center { font-size: 2.8rem; padding: 0 1rem; }
+  .invitation-date-info { gap: 1rem; padding: 1rem 1.5rem; margin-bottom: 1rem; }
+  .invitation-actions { grid-template-columns: repeat(4, 1fr); gap: 0.75rem; max-width: 100%; }
+  .invitation-bg-flower { width: 130px; top: -15px; right: -15px; }
+  .parents-names { gap: 1.5rem; }
+  .invitation-names { margin: 0.8rem 0 0.5rem; }
+  .action-circle { width: 52px; height: 52px; }
+  .action-item span { font-size: 0.48rem; }
+  .invitation-header { margin-bottom: 0.5rem; }
+}
+@media (max-width: 480px) {
+  .invitation-couple-names { font-size: 2.4rem; letter-spacing: 4px; }
+  .amp-gold { font-size: 2rem; }
+  .date-center { font-size: 2.4rem; }
+  .invitation-actions { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .action-circle { width: 50px; height: 50px; }
+  .parents-names { flex-direction: column; gap: 0.5rem; }
+  .invitation-bg-flower { width: 100px; }
+}
