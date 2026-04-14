@@ -4,7 +4,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 const HeroSection: React.FC = () => {
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 500], [0, 200]);
-  const y2 = useTransform(scrollY, [0, 500], [0, -150]);
+
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
 
   return (

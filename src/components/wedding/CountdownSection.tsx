@@ -15,7 +15,7 @@ const CountdownSection: React.FC<CountdownProps> = ({ timeLeft }) => {
             { label: 'Horas', value: timeLeft.h },
             { label: 'Minutos', value: timeLeft.m },
             { label: 'Segundos', value: timeLeft.s },
-          ].map((item, index) => (
+          ].map((item) => (
             <div key={item.label} className="countdown-card">
               <span className="count-value">
                 {String(item.value).padStart(2, '0')}

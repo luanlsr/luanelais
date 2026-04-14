@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Clock, Camera } from 'lucide-react';
+import { Clock, Camera } from 'lucide-react';
 
 const EventDetailsSection: React.FC = () => {
   return (
