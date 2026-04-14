@@ -1,278 +1,619 @@
-.envelope-wrapper {
+/* =============================================
+   ENV WRAPPER
+   ============================================= */
+.env-wrapper {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: var(--white);
+  inset: 0;
   z-index: 10000;
   overflow: hidden;
+  /* O fundo escuro é o "verso" do envelope (terceira camada) */
+  background: #1a2410;
 }
 
-.envelope-container-full {
+/* =============================================
+   COVER PANELS — split horizontally
+   Top slides UP, bottom slides DOWN
+   ============================================= */
+
+.env-cover-wrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  cursor: pointer;
+}
+
+/* Camada 3 — aba (flap) com corte em V — desliza para CIMA */
+.env-top-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64%;
+  background: #2D3820;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /*
+    Corte em V na parte de baixo: simula a aba dobrada do envelope.
+    Os lados da aba começam em 80% da altura do painel,
+    e a ponta do V vai até 100% (borda inferior do painel).
+  */
+  clip-path: polygon(0 0, 100% 0, 100% 80%, 50% 100%, 0 80%);
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.6));
+}
+
+.env-top-content {
   position: relative;
-  width: 100%;
-  height: 100%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-bottom: 8%; /* empurra os nomes levemente acima da ponta do V */
+}
+
+/* Camada 2 — corpo/frente do envelope — desliza para BAIXO */
+.env-bottom-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  /* Ligeiramente mais escuro que a aba para criar profundidade */
+  background: #263317;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 3rem;
+}
+
+.env-bottom-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.4rem;
+}
+
+/* ── Shared cover elements ── */
+.env-names-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.05;
+}
+
+.env-name-script {
+  font-family: var(--font-script);
+  font-size: clamp(3.2rem, 13vw, 5.5rem);
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 400;
+  letter-spacing: 2px;
+}
+
+.env-amp-script {
+  font-family: var(--font-script);
+  font-size: clamp(1.8rem, 7vw, 3rem);
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1;
+  margin: -0.4rem 0;
+}
+
+.env-divider {
+  width: 48px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  margin-bottom: 0.8rem;
+}
+
+.env-date-text {
+  font-family: var(--font-serif);
+  font-size: clamp(0.68rem, 2vw, 0.82rem);
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.env-hint {
+  font-size: 0.58rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.28);
+  margin-top: 0.6rem;
+}
+
+
+/* =============================================
+   OPENED: TWO-COLUMN LAYOUT (DESKTOP)
+   ============================================= */
+
+.inv-layout {
+  position: absolute;
+  inset: 0;
+  display: flex;
   overflow: hidden;
 }
 
-.envelope-gate {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
-/* DOORS / FLAPS */
-.door {
-  position: absolute;
-  top: 0;
-  height: 100%;
-  background-color: #262F00;
-  transition: transform 1.8s cubic-bezier(0.7, 0, 0.3, 1);
-  display: flex;
-}
-
-.door-left {
-  left: 0;
-  width: 66%;
-  transform-origin: left;
-  z-index: 101;
-  box-shadow: 10px 0 20px rgba(0,0,0,0.4);
-}
-
-.door-right {
-  right: 0;
-  width: 34.5%;
-  transform-origin: right;
-  z-index: 100;
-}
-
-.open .door-left {
-  transform: translateX(-100%);
-}
-
-.open .door-right {
-  transform: translateX(100%);
-}
-
-.door-texture {
+/* ── Left sticky panel (desktop only) ── */
+.inv-left-panel {
   display: none;
 }
 
-
-/* INVITATION CARD (FULL SCREEN) */
-.invitation-card-full {
-  position: absolute;
-  inset: 0;
-  background-color: var(--white);
-  z-index: 10;
-  padding: 3rem 2rem 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
+/* ── Scrollable card ── */
+.inv-card-wrap {
+  flex: 1;
+  height: 100%;
   overflow-y: auto;
-  gap: 0;
+  background: #fdfaf4;
+  scrollbar-width: thin;
+  scrollbar-color: #2D3820 transparent;
 }
 
-.invitation-bg-flower {
-  position: absolute;
-  top: -30px;
-  right: -30px;
-  left: auto;
-  width: 180px;
-  opacity: 0.6;
-  z-index: 1;
-  pointer-events: none;
-  transform: scaleX(-1);
-}
 
-.invitation-header { margin-bottom: 1rem; z-index: 2; }
-
-.parents-names {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  max-width: 700px;
-  gap: 3rem;
-  margin-top: 0.75rem;
-}
-
-.parent-pair {
-  display: flex;
-  flex-direction: column;
-  font-size: 0.6rem;
-  letter-spacing: 1.5px;
-  opacity: 0.45;
-  line-height: 1.6;
-}
-
-.invitation-names { margin: 1.2rem 0 0.8rem; z-index: 2; }
-
-.invitation-couple-names {
-  font-family: var(--font-serif);
-  font-size: 4rem;
-  color: var(--primary-olive);
-  text-transform: uppercase;
-  letter-spacing: 10px;
-  line-height: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  z-index: 2;
-}
-
-.amp-gold {
-  color: var(--gold-accent);
-  font-family: var(--font-script);
-  font-size: 3.2rem;
-  text-transform: none;
-  letter-spacing: 0;
-  margin: -0.7rem 0;
-}
-
-.invitation-message {
-  max-width: 420px;
-  font-size: 0.72rem;
-  letter-spacing: 1.5px;
-  opacity: 0.65;
-  margin-bottom: 1.2rem;
-  line-height: 2;
-  z-index: 2;
-}
-
-.invitation-date-info {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  margin-bottom: 1.5rem;
-  border-top: 1px solid rgba(124, 134, 97, 0.15);
-  border-bottom: 1px solid rgba(124, 134, 97, 0.15);
-  padding: 1.2rem 3rem;
-  z-index: 2;
-}
-
-.date-col { display: flex; flex-direction: column; }
-.date-col .label { font-size: 0.62rem; opacity: 0.5; letter-spacing: 3px; }
-.date-col .value { font-family: var(--font-serif); font-size: 1.2rem; }
-
-.date-center {
-  font-family: var(--font-serif);
-  font-size: 3.5rem;
-  color: var(--primary-olive);
-  padding: 0 1.5rem;
-  border-left: 1px solid rgba(0,0,0,0.1);
-  border-right: 1px solid rgba(0,0,0,0.1);
-  line-height: 1;
-}
-
-.invitation-actions {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  width: 100%;
-  max-width: 480px;
-  z-index: 2;
-}
-
-.action-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-}
-
-.action-circle {
-  width: 65px;
-  height: 65px;
-  border-radius: 50%;
-  background: var(--primary-olive);
+/* =============================================
+   OLIVE HEADER
+   ============================================= */
+.inv-header-olive {
+  background: #2D3820;
+  padding: 3rem 2rem 2.5rem;
+  text-align: center;
   color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 25px rgba(124, 134, 97, 0.3);
-  transition: transform 0.3s;
-  cursor: pointer;
 }
 
-.action-circle:hover { transform: scale(1.1); }
-
-.action-item span {
-  font-size: 0.55rem;
-  font-weight: 700;
-  letter-spacing: 1px;
+.inv-names-script {
+  font-family: var(--font-script);
+  font-size: clamp(2.8rem, 10vw, 5rem);
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1;
 }
 
-.click-hint-bottom { font-size: 0.6rem; letter-spacing: 4px; opacity: 0.3; margin-top: 3rem; }
-
-/* REFINED WAX SEAL */
-.seal-trigger {
-  position: absolute;
-  top: 50%;
-  left: 66%;
-  z-index: 200;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
+.inv-amp {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75em;
 }
 
-.wax-seal-olive {
-  width: 140px; /* Slightly larger to show the irregular edges */
-  height: 140px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* =============================================
+   PHOTO
+   ============================================= */
+.inv-photo-wrap {
   position: relative;
+  width: 100%;
+  height: clamp(240px, 55vw, 380px);
+  overflow: hidden;
 }
 
-.seal-image-asset {
+.inv-photo-img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  mix-blend-mode: screen; /* Makes BLACK transparent */
-  filter: contrast(1.1) brightness(1.2) drop-shadow(0 10px 20px rgba(0,0,0,0.4));
-  transition: transform 0.3s;
+  object-fit: cover;
+  object-position: center 25%;
+  display: block;
 }
 
-.seal-text-script {
+.inv-photo-fade {
   position: absolute;
-  top: 130px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: var(--font-script);
-  font-size: 1.8rem;
-  color: var(--gold-accent);
-  white-space: nowrap;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 45%;
+  background: linear-gradient(to bottom, transparent, #fdfaf4);
+  pointer-events: none;
+}
+
+/* =============================================
+   QUOTE
+   ============================================= */
+.inv-quote {
+  padding: 1.8rem 2.5rem 1.2rem;
+  text-align: center;
+}
+
+.inv-quote p {
+  font-family: var(--font-serif);
+  font-size: clamp(0.95rem, 3vw, 1.1rem);
+  font-style: italic;
+  color: #3a3a36;
+  opacity: 0.65;
+  line-height: 1.9;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+/* =============================================
+   DATE OLIVE BLOCK
+   ============================================= */
+.inv-date-olive {
+  background: #2D3820;
+  color: white;
+  padding: 2.2rem 2rem;
+  text-align: center;
+}
+
+.inv-date-month {
+  font-size: 0.58rem;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 1rem;
+}
+
+.inv-date-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.inv-date-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.62rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.inv-date-big {
+  font-family: var(--font-serif);
+  font-size: clamp(3rem, 12vw, 5.5rem);
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0 1.2rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.inv-date-venue {
+  margin-top: 1.2rem;
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* =============================================
+   CONTENT SECTIONS
+   ============================================= */
+.inv-section {
+  padding: 2.5rem 2rem;
+  border-bottom: 1px solid rgba(45, 56, 32, 0.07);
+}
+
+.inv-section-olive {
+  background: #2D3820;
+  border-bottom: none;
+}
+
+.inv-sec-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.6rem;
+}
+
+.inv-sec-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #2D3820;
+  color: rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.inv-sec-icon-light {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.inv-sec-title {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #2D3820;
+  line-height: 1.2;
+}
+
+.inv-sec-title-light {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.inv-sec-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  width: 100%;
+  text-align: center;
+}
+
+.inv-sec-name {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  color: #2D3820;
+  text-align: center;
+}
+
+.inv-sec-meta {
+  font-size: 0.72rem;
+  letter-spacing: 0.5px;
+  color: #6a6a60;
+  opacity: 0.8;
+  text-align: center;
+}
+
+.inv-map {
+  width: 100%;
+  margin: 1.2rem 0;
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+}
+
+.inv-map iframe { display: block; }
+
+/* Buttons */
+.inv-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #2D3820;
+  border: 1px solid #2D3820;
+  padding: 0.7rem 1.5rem;
+  margin-top: 0.5rem;
+  transition: all 0.25s;
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+}
+.inv-btn-outline:hover { background: #2D3820; color: white; }
+
+.inv-btn-solid {
+  display: block;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.88);
+  padding: 1rem;
+  font-size: 0.65rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s;
+  margin-top: 0.8rem;
+}
+.inv-btn-solid:hover { background: rgba(255, 255, 255, 0.2); }
+
+.inv-btn-ghost {
+  background: none;
+  border: none;
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.38);
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: color 0.2s;
+}
+.inv-btn-ghost:hover { color: rgba(255, 255, 255, 0.7); }
+
+/* RSVP */
+.inv-rsvp-form { width: 100%; display: flex; flex-direction: column; }
+
+.inv-rsvp-intro {
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+
+.inv-rsvp-input {
+  width: 100%;
+  padding: 1rem 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.88);
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  transition: border-color 0.3s;
+}
+.inv-rsvp-input::placeholder { color: rgba(255, 255, 255, 0.22); font-size: 0.95rem; }
+.inv-rsvp-input:focus { outline: none; border-bottom-color: rgba(255, 255, 255, 0.5); }
+
+.inv-members { display: flex; flex-direction: column; gap: 0.6rem; width: 100%; margin-bottom: 0.8rem; }
+
+.inv-member {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.2s;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.85rem;
+}
+.inv-member.selected { border-color: rgba(255, 255, 255, 0.45); background: rgba(255, 255, 255, 0.05); }
+
+.inv-member-check {
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.88);
+}
+.inv-member.selected .inv-member-check { border-color: rgba(255, 255, 255, 0.65); }
+
+.inv-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 2rem 0;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.72rem;
   letter-spacing: 1px;
 }
 
-@media (max-width: 768px) {
-  .invitation-card-full { padding: 2rem 1.5rem 1.5rem; justify-content: flex-start; padding-top: 2.5rem; }
-  .invitation-couple-names { font-size: 3rem; letter-spacing: 6px; }
-  .amp-gold { font-size: 2.5rem; }
-  .date-center { font-size: 2.8rem; padding: 0 1rem; }
-  .invitation-date-info { gap: 1rem; padding: 1rem 1.5rem; margin-bottom: 1rem; }
-  .invitation-actions { grid-template-columns: repeat(4, 1fr); gap: 0.75rem; max-width: 100%; }
-  .invitation-bg-flower { width: 130px; top: -15px; right: -15px; }
-  .parents-names { gap: 1.5rem; }
-  .invitation-names { margin: 0.8rem 0 0.5rem; }
-  .action-circle { width: 52px; height: 52px; }
-  .action-item span { font-size: 0.48rem; }
-  .invitation-header { margin-bottom: 0.5rem; }
+.inv-spinner {
+  width: 30px;
+  height: 30px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.inv-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1.5rem 0;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.85);
+}
+.inv-success h3 { font-family: var(--font-script); font-size: 2rem; font-weight: 400; }
+.inv-success p { font-size: 0.72rem; opacity: 0.55; letter-spacing: 0.5px; }
+
+.inv-group { width: 100%; display: flex; flex-direction: column; }
+
+/* Gifts */
+.inv-qr-frame {
+  width: 150px;
+  height: 150px;
+  border: 1px dashed rgba(45, 56, 32, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1rem auto;
+}
+.inv-qr-inner { font-family: var(--font-script); font-size: 2rem; color: #2D3820; opacity: 0.45; }
+
+.inv-pix-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 1rem 1.2rem;
+  background: rgba(45, 56, 32, 0.04);
+  border: 1px solid rgba(45, 56, 32, 0.1);
+}
+.inv-pix-key { font-size: 0.72rem; color: #3a3a36; opacity: 0.7; word-break: break-all; }
+.inv-pix-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.6rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #2D3820;
+  border: 1px solid rgba(45, 56, 32, 0.28);
+  padding: 0.42rem 1rem;
+  cursor: pointer;
+  background: none;
+  transition: all 0.2s;
+}
+.inv-pix-copy:hover { background: #2D3820; color: white; }
+
+/* Footer */
+.inv-footer { background: #2D3820; padding: 2.5rem 2rem; text-align: center; }
+.inv-footer-script { font-family: var(--font-script); font-size: 2.2rem; color: rgba(255,255,255,0.7); margin-bottom: 0.3rem; }
+.inv-footer-date { font-size: 0.58rem; letter-spacing: 4px; text-transform: uppercase; color: rgba(255,255,255,0.28); }
+
+
+/* =============================================
+   DESKTOP LAYOUT (≥900px)
+   ============================================= */
+@media (min-width: 900px) {
+  .inv-layout {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+  }
+
+  .inv-left-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: #2D3820;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: 3rem 2.5rem;
+    flex-shrink: 0;
+  }
+
+  .inv-left-names {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.05;
+  }
+
+  .inv-left-date {
+    font-family: var(--font-serif);
+    font-size: 0.75rem;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.38);
+  }
+
+  .inv-left-venue {
+    margin-top: 1rem;
+    font-size: 0.62rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.32);
+  }
+
+  .inv-left-city {
+    font-size: 0.58rem;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.22);
+    margin-top: 0.2rem;
+  }
+
+  .inv-header-olive { display: none; }
+
+  .inv-card-wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .inv-photo-wrap { height: 420px; }
+  .inv-section { padding: 2.8rem 3rem; }
+  .inv-date-olive { padding: 2.5rem 3rem; }
+  .inv-quote { padding: 2rem 3rem 1.5rem; }
+  .inv-footer { padding: 3rem; }
+}
+
+/* =============================================
+   MOBILE
+   ============================================= */
 @media (max-width: 480px) {
-  .invitation-couple-names { font-size: 2.4rem; letter-spacing: 4px; }
-  .amp-gold { font-size: 2rem; }
-  .date-center { font-size: 2.4rem; }
-  .invitation-actions { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-  .action-circle { width: 50px; height: 50px; }
-  .parents-names { flex-direction: column; gap: 0.5rem; }
-  .invitation-bg-flower { width: 100px; }
+  .inv-header-olive { padding: 3rem 1.5rem 2rem; }
+  .inv-quote { padding: 1.5rem 1.5rem 1rem; }
+  .inv-date-olive { padding: 2rem 1.5rem; }
+  .inv-section { padding: 2rem 1.5rem; }
 }
