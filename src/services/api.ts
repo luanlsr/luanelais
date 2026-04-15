@@ -3,12 +3,22 @@
  * Robust persistence layer simulating a real backend.
  */
 
+/* ── Guest ── */
 export interface Guest {
   id: string;
   name: string;
   group: string;
   confirmed: boolean;
   totalGuests: number;
+}
+
+/* ── Gift ── */
+export interface Gift {
+  id: string;
+  title: string;
+  imageUrl: string;
+  price: number;
+  buyUrl: string;
 }
 
 const INITIAL_GUESTS: Guest[] = [
@@ -21,46 +31,52 @@ const INITIAL_GUESTS: Guest[] = [
 ];
 
 class WeddingAPI {
-  private STORAGE_KEY = 'wedding_guests_v2';
+  private GUESTS_KEY = 'wedding_guests_v2';
+  private GIFTS_KEY  = 'wedding_gifts_v1';
+  private PIX_STORAGE_KEY = 'wedding_pix_key';
 
   constructor() {
-    if (!localStorage.getItem(this.STORAGE_KEY)) {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(INITIAL_GUESTS));
+    if (!localStorage.getItem(this.GUESTS_KEY)) {
+      localStorage.setItem(this.GUESTS_KEY, JSON.stringify(INITIAL_GUESTS));
+    }
+    if (!localStorage.getItem(this.GIFTS_KEY)) {
+      localStorage.setItem(this.GIFTS_KEY, JSON.stringify([]));
     }
   }
 
-  private async getGuests(): Promise<Guest[]> {
-    await new Promise(r => setTimeout(r, 800)); // Simulate network
-    return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+  /* ─────────── GUESTS ─────────── */
+
+  private async loadGuests(): Promise<Guest[]> {
+    await new Promise(r => setTimeout(r, 80));
+    return JSON.parse(localStorage.getItem(this.GUESTS_KEY) || '[]');
   }
 
   private async saveGuests(guests: Guest[]): Promise<void> {
-    await new Promise(r => setTimeout(r, 1000)); // Simulate server processing
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(guests));
+    await new Promise(r => setTimeout(r, 80));
+    localStorage.setItem(this.GUESTS_KEY, JSON.stringify(guests));
   }
 
   async searchGuest(name: string): Promise<Guest | null> {
-    const guests = await this.getGuests();
-    const found = guests.find(g => g.name.toLowerCase().includes(name.toLowerCase()));
-    return found || null;
+    const guests = await this.loadGuests();
+    return guests.find(g => g.name.toLowerCase().includes(name.toLowerCase())) || null;
   }
 
   async getGroup(groupName: string): Promise<Guest[]> {
-    const guests = await this.getGuests();
+    const guests = await this.loadGuests();
     return guests.filter(g => g.group === groupName);
   }
 
   async confirmRSVP(ids: string[]): Promise<void> {
-    const guests = await this.getGuests();
+    const guests = await this.loadGuests();
     const updated = guests.map(g => ({
       ...g,
-      confirmed: ids.includes(g.id) ? true : g.confirmed
+      confirmed: ids.includes(g.id) ? true : g.confirmed,
     }));
     await this.saveGuests(updated);
   }
 
   async getAdminStats() {
-    const guests = await this.getGuests();
+    const guests = await this.loadGuests();
     const confirmedCount = guests.filter(g => g.confirmed).length;
     return {
       total: guests.length,
@@ -70,7 +86,53 @@ class WeddingAPI {
   }
 
   async getAllGuestsForAdmin(): Promise<Guest[]> {
-    return await this.getGuests();
+    return await this.loadGuests();
+  }
+
+  async addGuest(guest: Omit<Guest, 'id'>): Promise<Guest> {
+    const guests = await this.loadGuests();
+    const newGuest: Guest = { ...guest, id: crypto.randomUUID() };
+    await this.saveGuests([...guests, newGuest]);
+    return newGuest;
+  }
+
+  async removeGuest(id: string): Promise<void> {
+    const guests = await this.loadGuests();
+    await this.saveGuests(guests.filter(g => g.id !== id));
+  }
+
+  /* ─────────── GIFTS ─────────── */
+
+  async getGifts(): Promise<Gift[]> {
+    return JSON.parse(localStorage.getItem(this.GIFTS_KEY) || '[]');
+  }
+
+  async addGift(gift: Omit<Gift, 'id'>): Promise<Gift> {
+    const gifts = await this.getGifts();
+    const newGift: Gift = { ...gift, id: crypto.randomUUID() };
+    localStorage.setItem(this.GIFTS_KEY, JSON.stringify([...gifts, newGift]));
+    return newGift;
+  }
+
+  async updateGift(id: string, data: Partial<Omit<Gift, 'id'>>): Promise<void> {
+    const gifts = await this.getGifts();
+    const updated = gifts.map(g => (g.id === id ? { ...g, ...data } : g));
+    localStorage.setItem(this.GIFTS_KEY, JSON.stringify(updated));
+  }
+
+  async removeGift(id: string): Promise<void> {
+    const gifts = await this.getGifts();
+    localStorage.setItem(this.GIFTS_KEY, JSON.stringify(gifts.filter(g => g.id !== id)));
+  }
+
+  /* ─────────── PIX ─────────── */
+
+  getPixKey(): string {
+    return localStorage.getItem(this.PIX_STORAGE_KEY) || 'luanelais@gmail.com';
+  }
+
+  setPixKey(key: string): void {
+    localStorage.setItem(this.PIX_STORAGE_KEY, key);
   }
 }
 

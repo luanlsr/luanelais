@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Users, Gift, CheckCircle2, Navigation, Copy } from 'lucide-react';
+import { MapPin, Users, Gift, CheckCircle2, Navigation, Copy, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { api, type Guest } from '../services/api';
+import { Link } from 'react-router-dom';
 import './Envelope.css';
 
 type CoverStatus = 'closed' | 'opening' | 'open';
@@ -18,7 +19,7 @@ const Envelope: React.FC = () => {
 
   // ── Pix copy ──
   const [pixCopied, setPixCopied] = useState(false);
-  const PIX_KEY = 'chavepix@casamentoluanelais.com';
+  const PIX_KEY = api.getPixKey();
 
   const handleCoverClick = () => {
     if (coverStatus === 'closed') {
@@ -223,6 +224,9 @@ const Envelope: React.FC = () => {
                   <Copy size={13} />{pixCopied ? 'Copiado!' : 'Copiar chave Pix'}
                 </button>
               </div>
+              <Link to="/presentes" className="inv-btn-outline" style={{ marginTop: '1.2rem' }}>
+                Ver Lista de Presentes <ArrowRight size={14} />
+              </Link>
             </div>
           </section>
 
