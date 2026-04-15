@@ -71,15 +71,8 @@ const Envelope: React.FC = () => {
   return (
     <div className="env-wrapper">
 
-      {/* ── The invitation content — hidden behind cover panels ── */}
-      <div
-        className="inv-layout"
-        style={{
-          opacity: coverStatus === 'open' ? 1 : 0,
-          transition: 'opacity 0.6s ease 0.2s',
-          pointerEvents: coverStatus === 'open' ? 'all' : 'none',
-        }}
-      >
+      {/* ── The invitation content ── */}
+      <div className="inv-layout">
 
         {/* Desktop sticky left panel */}
         <aside className="inv-left-panel">
@@ -121,7 +114,7 @@ const Envelope: React.FC = () => {
             <div className="inv-date-row">
               <div className="inv-date-side">
                 <span>SÁBADO</span>
-                <span>17H30</span>
+                <span>17h00</span>
               </div>
               <div className="inv-date-big">07</div>
               <div className="inv-date-side">
@@ -141,7 +134,7 @@ const Envelope: React.FC = () => {
             <div className="inv-sec-body">
               <p className="inv-sec-name">Porttal do Lago</p>
               <p className="inv-sec-meta">Guararapes — São Paulo</p>
-              <p className="inv-sec-meta" style={{ marginTop: '0.25rem' }}>Sábado · 07 de Novembro de 2026 · 17h30</p>
+              <p className="inv-sec-meta" style={{ marginTop: '0.25rem' }}>Sábado · 07 de Novembro de 2026 · 17h00</p>
               <div className="inv-map">
                 <iframe
                   src="https://maps.google.com/maps?q=Porttal+do+Lago,+Guararapes,+SP&hl=pt-BR&z=15&output=embed"

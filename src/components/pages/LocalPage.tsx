@@ -40,7 +40,7 @@ const LocalPage: React.FC<LocalPageProps> = ({ onBack }) => {
             </div>
             <div className="local-info-item">
               <MapPin size={16} />
-              <span>17h30 — Cerimônia</span>
+              <span>17h00 — Cerimônia</span>
             </div>
           </div>
 
