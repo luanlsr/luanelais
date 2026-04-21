@@ -49,6 +49,7 @@ const Envelope: React.FC = () => {
 
   const [currentPhoto, setCurrentPhoto] = useState(0);
   const [scrolled, setScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -59,16 +60,42 @@ const Envelope: React.FC = () => {
   }, [photos.length]);
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (scrollRef.current) {
-        setScrolled(scrollRef.current.scrollTop > 50);
-      }
-    };
+    // Reset de rota para '/' ao carregar/atualizar a página
+    window.history.replaceState(null, '', '/');
+    setActiveSection('');
+    
     const div = scrollRef.current;
-    if (div) {
-      div.addEventListener('scroll', handleScroll);
-    }
-    return () => div?.removeEventListener('scroll', handleScroll);
+    if (!div) return;
+
+    const handleScroll = () => {
+      setScrolled(div.scrollTop > 50);
+    };
+
+    // Sensor de Seção Ativa (Scroll Spy)
+    const observerOptions = {
+      root: div,
+      threshold: 0.5,
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    }, observerOptions);
+
+    const sections = ['cerimonia', 'rsvp', 'presentes'];
+    sections.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    div.addEventListener('scroll', handleScroll);
+    return () => {
+      div.removeEventListener('scroll', handleScroll);
+      observer.disconnect();
+    };
   }, []);
 
 
@@ -143,11 +170,21 @@ const Envelope: React.FC = () => {
         {coverStatus === 'open' && (
           <header className={`inv-nav-main ${scrolled ? 'scrolled' : ''}`}>
             <div className="inv-nav-content">
-              <div className="inv-nav-logo">L & L</div>
+              <div 
+                className="inv-nav-logo" 
+                onClick={() => {
+                  scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+                  window.history.pushState(null, '', '/');
+                  setActiveSection('');
+                }}
+                style={{ cursor: 'pointer' }}
+              >
+                L & L
+              </div>
               <nav className="inv-nav-links">
-                <a href="#cerimonia">Cerimônia</a>
-                <a href="#rsvp">Confirmar</a>
-                <a href="#presentes">Presentes</a>
+                <a href="#cerimonia" className={activeSection === 'cerimonia' ? 'active' : ''}>Cerimônia</a>
+                <a href="#rsvp" className={activeSection === 'rsvp' ? 'active' : ''}>Confirmar</a>
+                <a href="#presentes" className={activeSection === 'presentes' ? 'active' : ''}>Presentes</a>
               </nav>
             </div>
           </header>
