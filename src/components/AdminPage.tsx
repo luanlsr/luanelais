@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { LogOut, Key, Users, Gift, Trash2, Plus, Search, CheckCircle2, CreditCard, Star, X, MessageCircle, ChevronDown, ChevronUp, Calendar, Mail, Phone, Hash, Check } from 'lucide-react';
+import { LogOut, Users, Gift, Trash2, Plus, Search, CheckCircle2, CreditCard, Star, X, MessageCircle, Mail, Phone, Hash, Check, AlertCircle } from 'lucide-react';
 import { api, type Confirmation, type Gift as GiftType } from '../services/api';
 import { maskPixKey, unmaskValue, maskPhone } from '../utils/pix';
 import './AdminPage.css';
@@ -14,7 +14,6 @@ const AdminPage: React.FC = () => {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem('admin_auth') === '1');
   const [loginUser, setLoginUser] = useState('');
   const [loginPass, setLoginPass] = useState('');
-  const [loginError, setLoginError] = useState('');
   const [tab, setTab] = useState<Tab>('guests');
 
   const [confirmations, setConfirmations] = useState<Confirmation[]>([]);
@@ -24,17 +23,27 @@ const AdminPage: React.FC = () => {
   const [guestSearch, setGuestSearch] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
-  const [sentReminders, setSentReminders] = useState<string[]>([]); // Estado local para controle da sessão de disparos
+  const [sentReminders, setSentReminders] = useState<string[]>([]);
+
+  /* ── CUSTOM DIALOG STATE ── */
+  const [dialog, setDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'info' | 'confirm';
+    onConfirm?: () => void;
+  }>({ isOpen: false, title: '', message: '', type: 'info' });
+
+  const closeDialog = () => setDialog(prev => ({ ...prev, isOpen: false }));
+  const showInfo = (title: string, message: string) => setDialog({ isOpen: true, title, message, type: 'info' });
+  const showConfirm = (title: string, message: string, onConfirm: () => void) => 
+    setDialog({ isOpen: true, title, message, type: 'confirm', onConfirm });
 
   /* ── GIFT MODAL ── */
   const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
   const [giftTitle, setGiftTitle] = useState('');
-  const [giftSubtitle, setGiftSubtitle] = useState('');
-  const [giftBrand, setGiftBrand] = useState('');
-  const [giftCategory, setGiftCategory] = useState('Geral');
   const [giftPrice, setGiftPrice] = useState('');
   const [giftImageUrl, setGiftImageUrl] = useState('');
-  const [giftBuyUrl, setGiftBuyUrl] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
 
   useEffect(() => {
@@ -42,14 +51,18 @@ const AdminPage: React.FC = () => {
   }, [authed]);
 
   const loadAll = async () => {
-    const [conf, gf, px] = await Promise.all([
-      api.getConfirmations(),
-      api.getGifts(),
-      api.getPixData()
-    ]);
-    setConfirmations(conf);
-    setGifts(gf);
-    setPixData(px);
+    try {
+      const [conf, gf, px] = await Promise.all([
+        api.getConfirmations(),
+        api.getGifts(),
+        api.getPixData()
+      ]);
+      setConfirmations(conf);
+      setGifts(gf);
+      setPixData({ ...px, key: maskPixKey(px.key, px.type) });
+    } catch (err) {
+      showInfo('Erro', 'Não foi possível carregar os dados.');
+    }
   };
 
   const handleLogin = (e: React.FormEvent) => {
@@ -58,29 +71,24 @@ const AdminPage: React.FC = () => {
       sessionStorage.setItem('admin_auth', '1');
       setAuthed(true);
     } else {
-      setLoginError('Usuário ou senha incorretos.');
+      showInfo('Acesso Negado', 'Usuário ou senha incorretos.');
     }
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem('admin_auth');
-    setAuthed(false);
+    showConfirm('Sair do Painel', 'Deseja realmente encerrar sua sessão?', () => {
+       sessionStorage.removeItem('admin_auth');
+       setAuthed(false);
+       closeDialog();
+    });
   };
 
   const openWhatsAppRemind = (id: string, phone: string, name: string) => {
     const cleanPhone = phone.replace(/\D/g, '');
     const finalPhone = cleanPhone.startsWith('55') ? cleanPhone : '55' + cleanPhone;
-    
     const firstName = name.split(' ')[0];
-    const message = encodeURIComponent(`Olá ${firstName}, tudo bem? Estamos muito felizes com a chegada do nosso casamento! 🥂
-
-Passando para confirmar se você e seus dependentes registrados ainda poderão comparecer no dia 07/11/2026.
-
-Poderia nos confirmar por aqui? Um abraço, de Luan & Laís.`);
-
+    const message = encodeURIComponent(`Olá ${firstName}, tudo bem? Estamos muito felizes com a chegada do nosso casamento! 🥂\n\nPassando para confirmar se você e seus dependentes registrados ainda poderão comparecer no dia 07/11/2026.\n\nPoderia nos confirmar por aqui? Um abraço, de Luan & Laís.`);
     window.open(`https://wa.me/${finalPhone}?text=${message}`, '_blank');
-    
-    // Marca como enviado localmente para controle visual do "lote"
     if (!sentReminders.includes(id)) {
       setSentReminders(prev => [...prev, id]);
     }
@@ -112,9 +120,9 @@ Poderia nos confirmar por aqui? Um abraço, de Luan & Laís.`);
             <input className="adm-login-input" placeholder="Usuário" value={loginUser} onChange={e => setLoginUser(e.target.value)} />
             <input className="adm-login-input" type="password" placeholder="Senha" value={loginPass} onChange={e => setLoginPass(e.target.value)} />
           </div>
-          {loginError && <p style={{ color: '#ff4d4f', fontSize: '0.8rem', marginBottom: '1.5rem' }}>{loginError}</p>}
           <button type="submit" className="adm-btn-submit" style={{ width: '100%', justifyContent: 'center' }}>Entrar no Painel</button>
         </form>
+        {dialog.isOpen && <CustomDialog {...dialog} onClose={closeDialog} />}
       </div>
     );
   }
@@ -124,9 +132,7 @@ Poderia nos confirmar por aqui? Um abraço, de Luan & Laís.`);
       <header className="adm-header">
         <h1>L & L · Management</h1>
         <div style={{ display: 'flex', gap: '1rem' }}>
-          <button className="adm-btn-logout" onClick={() => setSentReminders([])} title="Limpar checklist de envios">
-             Reset Checklist
-          </button>
+          <button className="adm-btn-logout" onClick={() => setSentReminders([])}>Reset Checklist</button>
           <button className="adm-btn-logout" onClick={handleLogout}><LogOut size={14} /> Sair</button>
         </div>
       </header>
@@ -148,96 +154,52 @@ Poderia nos confirmar por aqui? Um abraço, de Luan & Laís.`);
 
             <div className="adm-search-wrap">
               <Search size={22} />
-              <input 
-                className="adm-search-input" 
-                placeholder="Pesquisar convidados..." 
-                value={guestSearch} 
-                onChange={e => setGuestSearch(e.target.value)} 
-              />
+              <input className="adm-search-input" placeholder="Pesquisar convidados..." value={guestSearch} onChange={e => setGuestSearch(e.target.value)} />
             </div>
 
             <div className="adm-list">
               {filteredGuests.slice(0, visibleCount).map(c => {
                 const isExpanded = expandedId === c.id;
                 const isSent = sentReminders.includes(c.id);
-                const total = 1 + (c.children?.length || 0);
                 return (
                   <div key={c.id} className={`adm-guest-row ${isExpanded ? 'expanded' : ''}`} onClick={() => setExpandedId(isExpanded ? null : c.id)}>
                     <div className="adm-row-main">
                       <div className="adm-guest-info">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
                           <h4 style={{ opacity: isSent ? 0.4 : 1 }}>{c.fullName}</h4>
-                          {isSent && (
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSentReminders(prev => prev.filter(id => id !== c.id));
-                              }}
-                              style={{ 
-                                background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-                                display: 'flex', alignItems: 'center'
-                              }}
-                              title="Desmarcar envio"
-                            >
-                              <Check size={16} color="#25D366" />
-                            </button>
-                          )}
+                          {isSent && <button onClick={(e) => { e.stopPropagation(); setSentReminders(prev => prev.filter(id => id !== c.id)); }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><Check size={16} color="#25D366" /></button>}
                         </div>
-                        {c.children && c.children.length > 0 && (
-                          <span style={{ opacity: isSent ? 0.3 : 1 }}>{total} Pessoas</span>
-                        )}
+                        {c.children && c.children.length > 0 && <span style={{ opacity: isSent ? 0.3 : 1 }}>{1 + c.children.length} Pessoas</span>}
                       </div>
                       <div className="adm-row-actions" onClick={e => e.stopPropagation()}>
-                        <button 
-                          className="adm-btn-icon wa" 
-                          style={{ 
-                            background: isSent ? '#f0f0f0' : '#25D366', 
-                            color: isSent ? '#ccc' : 'white',
-                            opacity: isSent ? 0.6 : 1
-                          }} 
-                          onClick={() => openWhatsAppRemind(c.id, c.phone, c.fullName)}
-                        >
+                        <button className="adm-btn-icon wa" style={{ background: isSent ? '#f0f0f0' : '#25D366' }} onClick={() => openWhatsAppRemind(c.id, c.phone, c.fullName)}>
                           <MessageCircle size={20} fill={isSent ? '#ccc' : 'white'} />
                         </button>
-                        <button className="adm-btn-icon trash" onClick={() => { if(window.confirm('Excluir?')) api.removeConfirmation(c.id).then(loadAll) }}>
-                          <Trash2 size={20} />
-                        </button>
-                        {isExpanded ? <ChevronUp size={20} opacity={0.3} /> : <ChevronDown size={20} opacity={0.3} />}
+                        <button className="adm-btn-icon trash" onClick={() => showConfirm('Excluir Convidado', `Deseja realmente remover ${c.fullName}?`, () => { api.removeConfirmation(c.id).then(() => { loadAll(); closeDialog(); }); })}><Trash2 size={20} /></button>
                       </div>
                     </div>
-                    
-                    <div className="adm-row-detail" onClick={e => e.stopPropagation()}>
-                      <div className="adm-detail-item">
-                        <label><Mail size={10} /> E-mail</label>
-                        <p>{c.email || '—'}</p>
+                    {isExpanded && (
+                      <div className="adm-row-detail" onClick={e => e.stopPropagation()}>
+                         <div className="adm-detail-item"><label><Mail size={10} /> E-mail</label><p>{c.email || '—'}</p></div>
+                         <div className="adm-detail-item"><label><Phone size={10} /> Telefone</label><p>{maskPhone(c.phone)}</p></div>
+                         {c.children && c.children.length > 0 && (
+                            <div className="adm-detail-item" style={{ gridColumn: '1 / -1' }}>
+                              <label><Hash size={10} /> Dependentes</label>
+                              <div>{c.children.map((ch, i) => <span key={i} className="adm-badge-child">{ch.name} ({ch.age}a)</span>)}</div>
+                            </div>
+                         )}
                       </div>
-                      <div className="adm-detail-item">
-                        <label><Phone size={10} /> Telefone</label>
-                        <p>{maskPhone(c.phone)}</p>
-                      </div>
-                      <div className="adm-detail-item">
-                        <label><Calendar size={10} /> Data Confirmação</label>
-                        <p>{c.createdAt ? new Date(c.createdAt).toLocaleDateString('pt-BR') : '-'}</p>
-                      </div>
-                      {c.children && c.children.length > 0 && (
-                        <div className="adm-detail-item" style={{ gridColumn: '1 / -1' }}>
-                          <label><Hash size={10} /> Dependentes / Crianças</label>
-                          <div>
-                            {c.children.map((ch, i) => (
-                              <span key={i} className="adm-badge-child">{ch.name} ({ch.age}a)</span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
                 );
               })}
             </div>
-            
             {visibleCount < filteredGuests.length && (
-              <button className="adm-load-more" onClick={() => setVisibleCount(v => v + ITEMS_PER_PAGE)}>
-                Mostrar Mais ({total - visibleCount} restantes)
+              <button 
+                className="adm-load-more" 
+                onClick={() => setVisibleCount(prev => prev + ITEMS_PER_PAGE)}
+              >
+                Mostrar Mais ({filteredGuests.length - visibleCount} restantes)
               </button>
             )}
           </div>
@@ -246,23 +208,18 @@ Poderia nos confirmar por aqui? Um abraço, de Luan & Laís.`);
         {tab === 'gifts' && (
           <div className="reveal active">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-              <h3 style={{ margin: 0, fontWeight: 500, fontFamily: 'var(--font-serif)', fontSize: '1.8rem' }}>Vitrine de Presentes ({gifts.length})</h3>
-              <button className="adm-btn-submit" onClick={() => setIsGiftModalOpen(true)}><Plus /> Novo Presente</button>
+              <h3 style={{ margin: 0, fontWeight: 500, fontFamily: 'var(--font-serif)', fontSize: '1.8rem' }}>Presentes ({gifts.length})</h3>
+              <button className="adm-btn-submit" onClick={() => setIsGiftModalOpen(true)}><Plus /> Novo</button>
             </div>
-
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '2rem' }}>
               {gifts.map(g => (
-                <div key={g.id} className="gp-card" style={{ transition: 'none' }}>
+                <div key={g.id} className="gp-card">
                   {g.isFeatured && <div className="gp-badge"><Star size={10} fill="white" /> Sugestão</div>}
                   <div className="gp-card-img"><img src={g.imageUrl} alt="" /></div>
                   <div className="gp-card-body">
-                    {g.brand && <span className="gp-card-brand">{g.brand}</span>}
                     <h3 style={{ fontSize: '0.95rem' }}>{g.title}</h3>
-                    <p className="gp-card-subtitle" style={{ fontSize: '0.75rem' }}>{g.subtitle}</p>
                     <div className="gp-price-wrap" style={{ border: 'none', paddingTop: 0 }}><p className="gp-price"><span>R$</span>{g.price.toFixed(2)}</p></div>
-                    <button className="adm-btn-logout" style={{ marginTop: '1.2rem', width: '100%', justifyContent: 'center' }} onClick={() => { if(window.confirm('Excluir?')) api.removeGift(g.id).then(loadAll) }}>
-                      <Trash2 size={16} /> Remover
-                    </button>
+                    <button className="adm-btn-logout" style={{ marginTop: '1.2rem', width: '100%', justifyContent: 'center' }} onClick={() => showConfirm('Remover Presente', 'Deseja excluir este item da vitrine?', () => { api.removeGift(g.id).then(() => { loadAll(); closeDialog(); }); })}><Trash2 size={16} /> Remover</button>
                   </div>
                 </div>
               ))}
@@ -275,37 +232,64 @@ Poderia nos confirmar por aqui? Um abraço, de Luan & Laís.`);
               <div className="adm-stat-card" style={{ maxWidth: '440px', margin: '0 auto', textAlign: 'left' }}>
                 <span className="adm-stat-label">Configuração Pix</span>
                 <div style={{ marginTop: '1.5rem', display: 'grid', gap: '1.2rem' }}>
-                  <div className="adm-form-field"><label>Tipo de Chave</label><select className="adm-login-input" value={pixData.type} onChange={(e) => setPixData({...pixData, type: e.target.value})}><option value="email">E-mail</option><option value="cpf">CPF</option><option value="cell">WhatsApp</option></select></div>
-                  <div className="adm-form-field"><label>Chave</label><input className="adm-login-input" value={pixData.key} onChange={(e) => setPixData({...pixData, key: e.target.value})} /></div>
-                  <div className="adm-form-field"><label>Titular</label><input className="adm-login-input" value={pixData.holder} onChange={(e) => setPixData({...pixData, holder: e.target.value})} /></div>
-                  <button className="adm-btn-submit" style={{ width: '100%', justifyContent: 'center' }} onClick={async () => { await api.updatePixData(pixData.key, pixData.type, pixData.holder); alert('Salvo!'); }}>Salvar Pix</button>
+                   <div className="adm-form-field"><label>Tipo de Chave</label><select className="adm-login-input" value={pixData.type} onChange={(e) => setPixData({...pixData, type: e.target.value})}><option value="email">E-mail</option><option value="cpf">CPF</option><option value="cnpj">CNPJ</option><option value="cell">Celular</option><option value="random">Chave Aleatória</option></select></div>
+                   <div className="adm-form-field"><label>Chave Pix</label><input className="adm-login-input" value={pixData.key} onChange={(e) => setPixData({...pixData, key: maskPixKey(e.target.value, pixData.type)})} /></div>
+                   <div className="adm-form-field"><label>Titular</label><input className="adm-login-input" value={pixData.holder} onChange={(e) => setPixData({...pixData, holder: e.target.value})} /></div>
+                   <button className="adm-btn-submit" style={{ width: '100%', justifyContent: 'center' }} onClick={async () => { await api.updatePixData(unmaskValue(pixData.key), pixData.type, pixData.holder); showInfo('Sucesso', 'Dados do Pix salvos com segurança!'); }}>Salvar Pix</button>
                 </div>
               </div>
            </div>
         )}
+      </main>
 
-        {isGiftModalOpen && (
-          <div className="adm-modal-overlay" onClick={() => setIsGiftModalOpen(false)}>
-            <div className="adm-modal-content" onClick={e => e.stopPropagation()}>
-              <div className="adm-modal-header"><h3>Inserir Presente</h3><button className="adm-close-btn" onClick={() => setIsGiftModalOpen(false)}><X size={20} /></button></div>
-              <div className="adm-modal-body">
-                 <form onSubmit={async (e) => {
-                   e.preventDefault();
-                   await api.addGift({ title: giftTitle, subtitle: giftSubtitle, brand: giftBrand, category: giftCategory, price: parseFloat(giftPrice) || 0, imageUrl: giftImageUrl, buyUrl: giftBuyUrl, isFeatured });
-                   setIsGiftModalOpen(false); loadAll();
-                 }} style={{ display: 'grid', gap: '1.2rem' }}>
-                    <div className="adm-form-field"><label>Título</label><input className="adm-login-input" value={giftTitle} onChange={e => setGiftTitle(e.target.value)} required /></div>
-                    <div className="adm-form-field"><label>Preço</label><input className="adm-login-input" value={giftPrice} onChange={e => setGiftPrice(e.target.value)} required /></div>
-                    <div className="adm-form-field"><label>URL Imagem</label><input className="adm-login-input" value={giftImageUrl} onChange={e => setGiftImageUrl(e.target.value)} required /></div>
-                    <button className="adm-btn-submit" style={{ width: '100%', justifyContent: 'center' }}>Salvar</button>
-                 </form>
-              </div>
+      {/* ── MODALS & DIALOGS ── */}
+      {isGiftModalOpen && (
+        <div className="adm-modal-overlay" onClick={() => setIsGiftModalOpen(false)}>
+          <div className="adm-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="adm-modal-header"><h3>Novo Presente</h3><button className="adm-close-btn" onClick={() => setIsGiftModalOpen(false)}><X size={20} /></button></div>
+            <div className="adm-modal-body">
+               <form onSubmit={async (e) => {
+                 e.preventDefault();
+                 await api.addGift({ title: giftTitle, subtitle: '', brand: '', category: 'Geral', price: parseFloat(giftPrice) || 0, imageUrl: giftImageUrl, buyUrl: '', isFeatured });
+                 setIsGiftModalOpen(false); loadAll(); showInfo('Feito!', 'Presente adicionado com sucesso.');
+               }} style={{ display: 'grid', gap: '1.2rem' }}>
+                  <div className="adm-form-field"><label>Título</label><input className="adm-login-input" value={giftTitle} onChange={e => setGiftTitle(e.target.value)} required /></div>
+                  <div className="adm-form-field"><label>Preço</label><input className="adm-login-input" value={giftPrice} onChange={e => setGiftPrice(e.target.value)} required /></div>
+                  <div className="adm-form-field"><label>URL Imagem</label><input className="adm-login-input" value={giftImageUrl} onChange={e => setGiftImageUrl(e.target.value)} required /></div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.5rem' }}>
+                    <input type="checkbox" checked={isFeatured} onChange={e => setIsFeatured(e.target.checked)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                    <label style={{ fontSize: '0.9rem', color: 'var(--adm-text-sub)', cursor: 'pointer' }}>Sugestão dos Noivos (Destaque)</label>
+                  </div>
+                  <button type="submit" className="adm-btn-submit" style={{ width: '100%', justifyContent: 'center' }}>Adicionar</button>
+               </form>
             </div>
           </div>
-        )}
-      </main>
+        </div>
+      )}
+
+      {dialog.isOpen && <CustomDialog {...dialog} onClose={closeDialog} />}
     </div>
   );
 };
+
+const CustomDialog: React.FC<{ isOpen: boolean, title: string, message: string, type: 'info' | 'confirm', onConfirm?: () => void, onClose: () => void }> = ({ title, message, type, onConfirm, onClose }) => (
+  <div className="adm-dialog-overlay" onClick={onClose}>
+    <div className="adm-dialog-content" onClick={e => e.stopPropagation()}>
+      {type === 'info' ? <CheckCircle2 size={40} color="#c5a059" style={{ marginBottom: '1rem' }} /> : <AlertCircle size={40} color="#2D3820" style={{ marginBottom: '1rem' }} />}
+      <h3>{title}</h3>
+      <p>{message}</p>
+      <div className="adm-dialog-actions">
+        {type === 'confirm' ? (
+          <>
+            <button className="adm-btn-icon trash" style={{ width: 'auto', padding: '0 2rem', borderRadius: '50px' }} onClick={onClose}>Cancelar</button>
+            <button className="adm-btn-submit" onClick={onConfirm}>Confirmar</button>
+          </>
+        ) : (
+          <button className="adm-btn-submit" onClick={onClose}>Excelente</button>
+        )}
+      </div>
+    </div>
+  </div>
+);
 
 export default AdminPage;

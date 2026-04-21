@@ -161,6 +161,120 @@
   box-shadow: 0 10px 40px rgba(197, 160, 89, 0.1);
 }
 
+/* ──────────────── LOGIN PAGE ──────────────── */
+.adm-login-page {
+  min-height: 100vh;
+  background: var(--adm-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.adm-login-card {
+  background: var(--adm-white);
+  padding: 3rem;
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(45, 56, 32, 0.08);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  border: 1px solid var(--adm-border);
+}
+
+.adm-login-card h2 {
+  font-family: var(--font-serif);
+  margin-bottom: 2.5rem;
+  font-size: 1.8rem;
+  color: var(--adm-text);
+}
+
+/* ──────────────── FORMS ──────────────── */
+.adm-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.adm-form-field label {
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--adm-text-sub);
+  margin-left: 0.5rem;
+}
+
+.adm-login-input {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border: 1px solid var(--adm-border);
+  border-radius: 12px;
+  background: #fbfbf8;
+  font-size: 0.95rem;
+  color: var(--adm-text);
+  transition: all 0.3s;
+  margin-bottom: 1rem; /* Para login que não usa form-field */
+}
+
+.adm-login-input:focus {
+  outline: none;
+  border-color: var(--adm-accent);
+  background: white;
+  box-shadow: 0 0 0 4px rgba(197, 160, 89, 0.05);
+}
+
+.adm-form-field .adm-login-input {
+  margin-bottom: 0;
+}
+
+/* ──────────────── DIALOGS ──────────────── */
+.adm-dialog-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(45, 56, 32, 0.4);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 2rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.adm-dialog-content {
+  background: white;
+  width: 100%;
+  max-width: 400px;
+  padding: 2.5rem;
+  border-radius: 24px;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.2);
+  text-align: center;
+  animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.adm-dialog-content h3 {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+}
+
+.adm-dialog-content p {
+  font-size: 0.95rem;
+  color: var(--adm-text-sub);
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.adm-dialog-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+@keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
 /* ──────────────── GUEST LIST (ROWS) ──────────────── */
 .adm-list {
   display: flex;
@@ -292,7 +406,7 @@
   transition: all 0.3s;
 }
 
-.adm-btn-icon:hover { border-color: var(--adm-accent); shadow: var(--adm-shadow); }
+.adm-btn-icon:hover { border-color: var(--adm-accent); box-shadow: var(--adm-shadow); }
 
 .adm-btn-icon.wa { background: #25D366; border: none; color: white; }
 .adm-btn-icon.trash { color: #ff4d4f; }
