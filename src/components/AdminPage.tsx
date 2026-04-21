@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { LogOut, Key, Users, Gift, Trash2, Plus, Search, CheckCircle2, Loader2, CreditCard } from 'lucide-react';
+import { LogOut, Key, Users, Gift, Trash2, Plus, Search, CheckCircle2, CreditCard, Star, X, MessageCircle, ChevronDown, ChevronUp, Calendar, Mail, Phone, Hash, Check } from 'lucide-react';
 import { api, type Confirmation, type Gift as GiftType } from '../services/api';
-import { generatePixPayload, maskPixKey, unmaskValue, maskPhone } from '../utils/pix';
+import { maskPixKey, unmaskValue, maskPhone } from '../utils/pix';
 import './AdminPage.css';
 
 const ADMIN_USER = 'luanelais';
 const ADMIN_PASS = '07112026';
+const ITEMS_PER_PAGE = 15;
 
 type Tab = 'pix' | 'guests' | 'gifts';
 
@@ -16,43 +17,46 @@ const AdminPage: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   const [tab, setTab] = useState<Tab>('guests');
 
-  /* ── PIX ── */
-  const [pixKey, setPixKey] = useState('');
-  const [pixType, setPixType] = useState('email');
-  const [pixHolder, setPixHolder] = useState('');
-  const [pixPrefix] = useState('55');
-  const [pixSaved, setPixSaved] = useState(false);
-
-  /* ── CONFIRMATIONS ── */
   const [confirmations, setConfirmations] = useState<Confirmation[]>([]);
-  const [guestSearch, setGuestSearch] = useState('');
-
-  /* ── GIFTS ── */
   const [gifts, setGifts] = useState<GiftType[]>([]);
-  const [giftUrl, setGiftUrl] = useState('');
+  const [pixData, setPixData] = useState({ key: '', type: 'email', holder: '' });
+
+  const [guestSearch, setGuestSearch] = useState('');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const [sentReminders, setSentReminders] = useState<string[]>([]); // Estado local para controle da sessão de disparos
+
+  /* ── GIFT MODAL ── */
+  const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
   const [giftTitle, setGiftTitle] = useState('');
   const [giftSubtitle, setGiftSubtitle] = useState('');
   const [giftBrand, setGiftBrand] = useState('');
-  const [giftCategory, setGiftCategory] = useState('Outros');
-  const [giftImage, setGiftImage] = useState('');
+  const [giftCategory, setGiftCategory] = useState('Geral');
   const [giftPrice, setGiftPrice] = useState('');
+  const [giftImageUrl, setGiftImageUrl] = useState('');
+  const [giftBuyUrl, setGiftBuyUrl] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
-  const [fetching, setFetching] = useState(false);
 
   useEffect(() => {
-    if (authed) {
-      loadConfirmations();
-      loadGifts();
-      loadPix();
-    }
+    if (authed) loadAll();
   }, [authed]);
+
+  const loadAll = async () => {
+    const [conf, gf, px] = await Promise.all([
+      api.getConfirmations(),
+      api.getGifts(),
+      api.getPixData()
+    ]);
+    setConfirmations(conf);
+    setGifts(gf);
+    setPixData(px);
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (loginUser === ADMIN_USER && loginPass === ADMIN_PASS) {
       sessionStorage.setItem('admin_auth', '1');
       setAuthed(true);
-      setLoginError('');
     } else {
       setLoginError('Usuário ou senha incorretos.');
     }
@@ -63,150 +67,53 @@ const AdminPage: React.FC = () => {
     setAuthed(false);
   };
 
-  /* ── PIX handlers ── */
-  const loadPix = async () => {
-    const data = await api.getPixData();
-    setPixKey(data.key);
-    setPixType(data.type);
-    setPixHolder(data.holder);
-  };
+  const openWhatsAppRemind = (id: string, phone: string, name: string) => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    const finalPhone = cleanPhone.startsWith('55') ? cleanPhone : '55' + cleanPhone;
+    
+    const firstName = name.split(' ')[0];
+    const message = encodeURIComponent(`Olá ${firstName}, tudo bem? Estamos muito felizes com a chegada do nosso casamento! 🥂
 
-  const handleSavePix = async () => {
-    await api.updatePixData(finalPixKey, pixType, pixHolder);
-    setPixSaved(true);
-    setTimeout(() => setPixSaved(false), 2000);
-  };
+Passando para confirmar se você e seus dependentes registrados ainda poderão comparecer no dia 07/11/2026.
 
-  const handlePixChange = (val: string) => {
-    setPixKey(maskPixKey(val, pixType));
-  };
+Poderia nos confirmar por aqui? Um abraço, de Luan & Laís.`);
 
-  const finalPixKey = useMemo(() => {
-    if (pixType === 'cell') {
-      const clean = unmaskValue(pixKey);
-      const body = clean.startsWith(pixPrefix) ? clean.substring(pixPrefix.length) : clean;
-      return pixPrefix + body;
+    window.open(`https://wa.me/${finalPhone}?text=${message}`, '_blank');
+    
+    // Marca como enviado localmente para controle visual do "lote"
+    if (!sentReminders.includes(id)) {
+      setSentReminders(prev => [...prev, id]);
     }
-    return unmaskValue(pixKey);
-  }, [pixKey, pixPrefix, pixType]);
-
-  /* ── CONFIRMATION handlers ── */
-  const loadConfirmations = async () => {
-    const all = await api.getConfirmations();
-    setConfirmations(all);
   };
 
-  const handleRemoveConfirmation = async (id: string) => {
-    if (!window.confirm('Remover esta confirmação?')) return;
-    await api.removeConfirmation(id);
-    await loadConfirmations();
-  };
-
-  /* ── GIFT handlers ── */
-  const loadGifts = async () => {
-    const all = await api.getGifts();
-    setGifts(all);
-  };
-
-  const handleFetchUrl = async () => {
-    if (!giftUrl.trim()) return;
-    setFetching(true);
-    try {
-      const resp = await fetch(`https://api.microlink.io?url=${encodeURIComponent(giftUrl.trim())}`);
-      const json = await resp.json();
-      if (json.status === 'success' && json.data) {
-        const d = json.data;
-        if (d.title) {
-          const parts = d.title.split(/ - | \| /);
-          setGiftTitle(parts[0]);
-          if (parts.length > 1) setGiftSubtitle(parts.slice(1).join(' - '));
-        }
-        if (d.publisher) setGiftBrand(d.publisher);
-        if (d.image?.url) setGiftImage(d.image.url);
-        if (d.price) {
-          const raw = typeof d.price === 'object' ? d.price.amount : d.price;
-          setGiftPrice(String(raw || ''));
-        }
-      }
-    } catch {
-      // fail silently
-    }
-    setFetching(false);
-  };
-
-  const handleAddGift = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!giftTitle.trim()) return;
-    await api.addGift({
-      title: giftTitle.trim(),
-      subtitle: giftSubtitle.trim(),
-      brand: giftBrand.trim(),
-      category: giftCategory,
-      imageUrl: giftImage.trim(),
-      price: parseFloat(giftPrice) || 0,
-      buyUrl: giftUrl.trim(),
-      isFeatured: isFeatured
-    });
-    setGiftUrl('');
-    setGiftTitle('');
-    setGiftSubtitle('');
-    setGiftBrand('');
-    setGiftCategory('Outros');
-    setGiftImage('');
-    setGiftPrice('');
-    setIsFeatured(false);
-    await loadGifts();
-  };
-
-  const handleRemoveGift = async (id: string) => {
-    if (!window.confirm('Remover este presente?')) return;
-    await api.removeGift(id);
-    await loadGifts();
-  };
-
-  const filteredConfirmations = guestSearch.trim()
-    ? confirmations.filter(c => c.fullName.toLowerCase().includes(guestSearch.toLowerCase()))
-    : confirmations;
+  const filteredGuests = useMemo(() => {
+    if (!guestSearch.trim()) return confirmations;
+    const q = guestSearch.toLowerCase();
+    return confirmations.filter(c => 
+      c.fullName.toLowerCase().includes(q) || 
+      c.email?.toLowerCase().includes(q) ||
+      c.phone.includes(q)
+    );
+  }, [confirmations, guestSearch]);
 
   const stats = useMemo(() => {
-    let adults = confirmations.length;
+    const adults = confirmations.length;
     let kids = 0;
-    confirmations.forEach(c => {
-      kids += (c.children?.length || 0);
-    });
-    return {
-      adults,
-      kids,
-      total: adults + kids
-    };
+    confirmations.forEach(c => kids += (c.children?.length || 0));
+    return { adults, kids, total: adults + kids };
   }, [confirmations]);
-
-  const pixPayload = useMemo(() => {
-    return generatePixPayload(finalPixKey);
-  }, [finalPixKey]);
 
   if (!authed) {
     return (
-      <div className="adm-login-wrap">
+      <div className="adm-login-page">
         <form className="adm-login-card" onSubmit={handleLogin}>
-          <div className="adm-login-icon">🌿</div>
-          <h1>Admin</h1>
-          <p className="adm-login-sub">Painel Administrativo - L & L</p>
-          <input
-            type="text"
-            placeholder="Usuário"
-            value={loginUser}
-            onChange={e => setLoginUser(e.target.value)}
-            autoFocus
-          />
-          <input
-            type="password"
-            placeholder="Senha"
-            value={loginPass}
-            onChange={e => setLoginPass(e.target.value)}
-          />
-          {loginError && <p className="adm-login-error">{loginError}</p>}
-          <button type="submit" className="adm-btn-primary">Acessar Painel</button>
+          <h2>Acesso Admin</h2>
+          <div style={{ marginBottom: '2rem' }}>
+            <input className="adm-login-input" placeholder="Usuário" value={loginUser} onChange={e => setLoginUser(e.target.value)} />
+            <input className="adm-login-input" type="password" placeholder="Senha" value={loginPass} onChange={e => setLoginPass(e.target.value)} />
+          </div>
+          {loginError && <p style={{ color: '#ff4d4f', fontSize: '0.8rem', marginBottom: '1.5rem' }}>{loginError}</p>}
+          <button type="submit" className="adm-btn-submit" style={{ width: '100%', justifyContent: 'center' }}>Entrar no Painel</button>
         </form>
       </div>
     );
@@ -215,243 +122,186 @@ const AdminPage: React.FC = () => {
   return (
     <div className="adm-wrap">
       <header className="adm-header">
-        <div className="adm-header-left">
-          <h1>L & L · Painel</h1>
+        <h1>L & L · Management</h1>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <button className="adm-btn-logout" onClick={() => setSentReminders([])} title="Limpar checklist de envios">
+             Reset Checklist
+          </button>
+          <button className="adm-btn-logout" onClick={handleLogout}><LogOut size={14} /> Sair</button>
         </div>
-        <button className="adm-btn-ghost" onClick={handleLogout}>
-          <LogOut size={16} /> Sair
-        </button>
       </header>
 
       <nav className="adm-tabs">
-        <button className={`adm-tab ${tab === 'guests' ? 'active' : ''}`} onClick={() => setTab('guests')}>
-          <Users size={18} /> Presenças
-        </button>
-        <button className={`adm-tab ${tab === 'gifts' ? 'active' : ''}`} onClick={() => setTab('gifts')}>
-          <Gift size={18} /> Presentes
-        </button>
-        <button className={`adm-tab ${tab === 'pix' ? 'active' : ''}`} onClick={() => setTab('pix')}>
-          <Key size={18} /> Pix
-        </button>
+        <button className={`adm-tab ${tab === 'guests' ? 'active' : ''}`} onClick={() => setTab('guests')}><Users size={18} /> Convidados</button>
+        <button className={`adm-tab ${tab === 'gifts' ? 'active' : ''}`} onClick={() => setTab('gifts')}><Gift size={18} /> Presentes</button>
+        <button className={`adm-tab ${tab === 'pix' ? 'active' : ''}`} onClick={() => setTab('pix')}><CreditCard size={18} /> Pix</button>
       </nav>
 
       <main className="adm-content">
         {tab === 'guests' && (
-          <>
-            <div className="adm-stats">
-              <div className="adm-stat-card">
-                <p className="adm-stat-label">Total Geral</p>
-                <p className="adm-stat-value">{stats.total}</p>
-              </div>
-              <div className="adm-stat-card">
-                <p className="adm-stat-label">Adultos</p>
-                <p className="adm-stat-value" style={{ color: '#5d6d4a' }}>{stats.adults}</p>
-              </div>
-              <div className="adm-stat-card">
-                <p className="adm-stat-label">Crianças</p>
-                <p className="adm-stat-value" style={{ color: '#c5a059' }}>{stats.kids}</p>
-              </div>
+          <div className="reveal active">
+            <div className="adm-stats-grid">
+              <div className="adm-stat-card"><span className="adm-stat-label">Total Pessoas</span><span className="adm-stat-value">{stats.total}</span></div>
+              <div className="adm-stat-card"><span className="adm-stat-label">Adultos</span><span className="adm-stat-value">{stats.adults}</span></div>
+              <div className="adm-stat-card"><span className="adm-stat-label">Crianças</span><span className="adm-stat-value">{stats.kids}</span></div>
             </div>
 
-            <div className="adm-search-row">
-              <Search size={18} />
-              <input
-                className="adm-input"
-                placeholder="Buscar por nome do convidado..."
-                value={guestSearch}
-                onChange={e => setGuestSearch(e.target.value)}
+            <div className="adm-search-wrap">
+              <Search size={22} />
+              <input 
+                className="adm-search-input" 
+                placeholder="Pesquisar convidados..." 
+                value={guestSearch} 
+                onChange={e => setGuestSearch(e.target.value)} 
               />
             </div>
 
-            <div className="adm-table-wrap">
-              <table className="adm-table">
-                <thead>
-                  <tr>
-                    <th>Convidado</th>
-                    <th>Contato</th>
-                    <th>Dependentes</th>
-                    <th>Data</th>
-                    <th align="right">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredConfirmations.map(c => (
-                    <tr key={c.id}>
-                      <td><strong>{c.fullName}</strong></td>
-                      <td>
-                        <div style={{ fontSize: '0.85rem' }}>
-                          <span style={{ opacity: 0.7 }}>{maskPhone(c.phone)}</span><br />
-                          <span style={{ opacity: 0.5 }}>{c.email}</span>
+            <div className="adm-list">
+              {filteredGuests.slice(0, visibleCount).map(c => {
+                const isExpanded = expandedId === c.id;
+                const isSent = sentReminders.includes(c.id);
+                const total = 1 + (c.children?.length || 0);
+                return (
+                  <div key={c.id} className={`adm-guest-row ${isExpanded ? 'expanded' : ''}`} onClick={() => setExpandedId(isExpanded ? null : c.id)}>
+                    <div className="adm-row-main">
+                      <div className="adm-guest-info">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                          <h4 style={{ opacity: isSent ? 0.4 : 1 }}>{c.fullName}</h4>
+                          {isSent && (
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSentReminders(prev => prev.filter(id => id !== c.id));
+                              }}
+                              style={{ 
+                                background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                                display: 'flex', alignItems: 'center'
+                              }}
+                              title="Desmarcar envio"
+                            >
+                              <Check size={16} color="#25D366" />
+                            </button>
+                          )}
                         </div>
-                      </td>
-                      <td>
-                        {c.children && c.children.length > 0 ? (
-                          <div className="adm-child-badges">
-                            {c.children.map((child, i) => (
-                              <span key={i} className="adm-child-badge">
-                                {child.name} ({child.age}a)
-                              </span>
+                        {c.children && c.children.length > 0 && (
+                          <span style={{ opacity: isSent ? 0.3 : 1 }}>{total} Pessoas</span>
+                        )}
+                      </div>
+                      <div className="adm-row-actions" onClick={e => e.stopPropagation()}>
+                        <button 
+                          className="adm-btn-icon wa" 
+                          style={{ 
+                            background: isSent ? '#f0f0f0' : '#25D366', 
+                            color: isSent ? '#ccc' : 'white',
+                            opacity: isSent ? 0.6 : 1
+                          }} 
+                          onClick={() => openWhatsAppRemind(c.id, c.phone, c.fullName)}
+                        >
+                          <MessageCircle size={20} fill={isSent ? '#ccc' : 'white'} />
+                        </button>
+                        <button className="adm-btn-icon trash" onClick={() => { if(window.confirm('Excluir?')) api.removeConfirmation(c.id).then(loadAll) }}>
+                          <Trash2 size={20} />
+                        </button>
+                        {isExpanded ? <ChevronUp size={20} opacity={0.3} /> : <ChevronDown size={20} opacity={0.3} />}
+                      </div>
+                    </div>
+                    
+                    <div className="adm-row-detail" onClick={e => e.stopPropagation()}>
+                      <div className="adm-detail-item">
+                        <label><Mail size={10} /> E-mail</label>
+                        <p>{c.email || '—'}</p>
+                      </div>
+                      <div className="adm-detail-item">
+                        <label><Phone size={10} /> Telefone</label>
+                        <p>{maskPhone(c.phone)}</p>
+                      </div>
+                      <div className="adm-detail-item">
+                        <label><Calendar size={10} /> Data Confirmação</label>
+                        <p>{c.createdAt ? new Date(c.createdAt).toLocaleDateString('pt-BR') : '-'}</p>
+                      </div>
+                      {c.children && c.children.length > 0 && (
+                        <div className="adm-detail-item" style={{ gridColumn: '1 / -1' }}>
+                          <label><Hash size={10} /> Dependentes / Crianças</label>
+                          <div>
+                            {c.children.map((ch, i) => (
+                              <span key={i} className="adm-badge-child">{ch.name} ({ch.age}a)</span>
                             ))}
                           </div>
-                        ) : (
-                          <span style={{ opacity: 0.3 }}>-</span>
-                        )}
-                      </td>
-                      <td>
-                        <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>
-                          {c.createdAt ? new Date(c.createdAt).toLocaleDateString('pt-BR') : '-'}
-                        </span>
-                      </td>
-                      <td align="right">
-                        <button className="adm-btn-icon" onClick={() => handleRemoveConfirmation(c.id)}>
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredConfirmations.length === 0 && (
-                    <tr>
-                      <td colSpan={5} align="center" style={{ padding: '3rem', opacity: 0.5 }}>
-                        Nenhuma confirmação encontrada.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </>
+            
+            {visibleCount < filteredGuests.length && (
+              <button className="adm-load-more" onClick={() => setVisibleCount(v => v + ITEMS_PER_PAGE)}>
+                Mostrar Mais ({total - visibleCount} restantes)
+              </button>
+            )}
+          </div>
         )}
 
         {tab === 'gifts' && (
-          <>
-            <section className="adm-section">
-              <div className="adm-sec-header-compact">
-                <Gift size={20} /> Cadastrar Novo Presente
-              </div>
-              <div className="adm-card-elevated">
-                <div className="adm-form">
-                  <div className="adm-form-full">
-                    <label className="adm-label-premium">Link do Produto (Amazon, ML, etc)</label>
-                    <div className="adm-input-group">
-                      <input className="adm-input" value={giftUrl} onChange={e => setGiftUrl(e.target.value)} placeholder="https://..." />
-                      <button className="adm-btn-accent" onClick={handleFetchUrl} disabled={fetching}>
-                        {fetching ? <Loader2 size={18} className="animate-spin" /> : 'Puxar Dados'}
-                      </button>
-                    </div>
-                  </div>
-                  <div className="adm-form-2col">
-                    <div>
-                      <label className="adm-label-premium">Título Curto</label>
-                      <input className="adm-input" value={giftTitle} onChange={e => setGiftTitle(e.target.value)} placeholder="Ex: Air Fryer" />
-                    </div>
-                    <div>
-                      <label className="adm-label-premium">Subtítulo / Modelo</label>
-                      <input className="adm-input" value={giftSubtitle} onChange={e => setGiftSubtitle(e.target.value)} placeholder="Ex: 5 em 1 12L" />
-                    </div>
-                  </div>
-                  <div className="adm-form-3col">
-                    <div>
-                      <label className="adm-label-premium">Marca</label>
-                      <input className="adm-input" value={giftBrand} onChange={e => setGiftBrand(e.target.value)} placeholder="Ex: Electrolux" />
-                    </div>
-                    <div>
-                      <label className="adm-label-premium">Categoria</label>
-                      <select className="adm-input" value={giftCategory} onChange={e => setGiftCategory(e.target.value)}>
-                        <option value="Eletroportáteis">Eletroportáteis</option>
-                        <option value="Cozinha">Cozinha</option>
-                        <option value="Sala de Estar">Sala de Estar</option>
-                        <option value="Quarto">Quarto</option>
-                        <option value="Banheiro">Banheiro</option>
-                        <option value="Decoração">Decoração</option>
-                        <option value="Experiências">Experiências</option>
-                        <option value="Outros">Outros</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="adm-label-premium">Preço (R$)</label>
-                      <input className="adm-input" type="number" step="0.01" value={giftPrice} onChange={e => setGiftPrice(e.target.value)} />
-                    </div>
-                  </div>
-                  <div className="adm-form-row">
-                    <label className="adm-label-premium" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                      <input type="checkbox" checked={isFeatured} onChange={e => setIsFeatured(e.target.checked)} />
-                      Destacar este produto (Badge de Sugestão)
-                    </label>
-                  </div>
-                  <div className="adm-form-full">
-                    <label className="adm-label-premium">URL da Imagem</label>
-                    <input className="adm-input" value={giftImage} onChange={e => setGiftImage(e.target.value)} />
-                  </div>
-                  <button className="adm-btn-primary" onClick={handleAddGift} style={{ marginTop: '1.5rem' }}>
-                    <Plus size={18} /> Salvar Presente
-                  </button>
-                </div>
-              </div>
-            </section>
+          <div className="reveal active">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
+              <h3 style={{ margin: 0, fontWeight: 500, fontFamily: 'var(--font-serif)', fontSize: '1.8rem' }}>Vitrine de Presentes ({gifts.length})</h3>
+              <button className="adm-btn-submit" onClick={() => setIsGiftModalOpen(true)}><Plus /> Novo Presente</button>
+            </div>
 
-            <section className="adm-section">
-              <div className="adm-sec-header-compact">
-                <Gift size={20} /> Lista Atual ({gifts.length})
-              </div>
-              <div className="adm-gift-grid">
-                {gifts.map(g => (
-                  <div key={g.id} className="adm-gift-item">
-                    <img src={g.imageUrl} alt="" />
-                    <div className="adm-gift-info">
-                      <strong>{g.title}</strong>
-                      <span>R$ {g.price.toFixed(2)}</span>
-                    </div>
-                    <button className="adm-btn-icon-red" onClick={() => handleRemoveGift(g.id)}>
-                      <Trash2 size={16} />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '2rem' }}>
+              {gifts.map(g => (
+                <div key={g.id} className="gp-card" style={{ transition: 'none' }}>
+                  {g.isFeatured && <div className="gp-badge"><Star size={10} fill="white" /> Sugestão</div>}
+                  <div className="gp-card-img"><img src={g.imageUrl} alt="" /></div>
+                  <div className="gp-card-body">
+                    {g.brand && <span className="gp-card-brand">{g.brand}</span>}
+                    <h3 style={{ fontSize: '0.95rem' }}>{g.title}</h3>
+                    <p className="gp-card-subtitle" style={{ fontSize: '0.75rem' }}>{g.subtitle}</p>
+                    <div className="gp-price-wrap" style={{ border: 'none', paddingTop: 0 }}><p className="gp-price"><span>R$</span>{g.price.toFixed(2)}</p></div>
+                    <button className="adm-btn-logout" style={{ marginTop: '1.2rem', width: '100%', justifyContent: 'center' }} onClick={() => { if(window.confirm('Excluir?')) api.removeGift(g.id).then(loadAll) }}>
+                      <Trash2 size={16} /> Remover
                     </button>
                   </div>
-                ))}
-              </div>
-            </section>
-          </>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
         {tab === 'pix' && (
-          <section className="adm-section">
-            <div className="adm-sec-header-compact">
-              <CreditCard size={20} /> Configuração do Pix para Presentes
-            </div>
-            <div className="adm-card-elevated" style={{ maxWidth: '600px' }}>
-              <div className="adm-form">
-                <div className="adm-form-2col">
-                  <div>
-                    <label className="adm-label-premium">Tipo de Chave</label>
-                    <select className="adm-input" value={pixType} onChange={e => setPixType(e.target.value)}>
-                      <option value="email">E-mail</option>
-                      <option value="cpf">CPF</option>
-                      <option value="cnpj">CNPJ</option>
-                      <option value="cell">Celular</option>
-                      <option value="random">Chave Aleatória</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="adm-label-premium">Titular da Conta</label>
-                    <input className="adm-input" value={pixHolder} onChange={e => setPixHolder(e.target.value)} placeholder="Nome Completo" />
-                  </div>
+           <div className="reveal active">
+              <div className="adm-stat-card" style={{ maxWidth: '440px', margin: '0 auto', textAlign: 'left' }}>
+                <span className="adm-stat-label">Configuração Pix</span>
+                <div style={{ marginTop: '1.5rem', display: 'grid', gap: '1.2rem' }}>
+                  <div className="adm-form-field"><label>Tipo de Chave</label><select className="adm-login-input" value={pixData.type} onChange={(e) => setPixData({...pixData, type: e.target.value})}><option value="email">E-mail</option><option value="cpf">CPF</option><option value="cell">WhatsApp</option></select></div>
+                  <div className="adm-form-field"><label>Chave</label><input className="adm-login-input" value={pixData.key} onChange={(e) => setPixData({...pixData, key: e.target.value})} /></div>
+                  <div className="adm-form-field"><label>Titular</label><input className="adm-login-input" value={pixData.holder} onChange={(e) => setPixData({...pixData, holder: e.target.value})} /></div>
+                  <button className="adm-btn-submit" style={{ width: '100%', justifyContent: 'center' }} onClick={async () => { await api.updatePixData(pixData.key, pixData.type, pixData.holder); alert('Salvo!'); }}>Salvar Pix</button>
                 </div>
-                <div className="adm-form-full">
-                  <label className="adm-label-premium">Chave Pix</label>
-                  <input className="adm-input" value={pixKey} onChange={e => handlePixChange(e.target.value)} placeholder="Sua chave..." />
-                </div>
+              </div>
+           </div>
+        )}
 
-                <div className="adm-pix-preview">
-                  <p className="adm-label-premium" style={{ marginBottom: '1rem', opacity: 0.6 }}>Preview do QR Code</p>
-                  <div className="adm-qr-container">
-                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(pixPayload)}`} alt="QR Code" />
-                  </div>
-                </div>
-
-                <button className="adm-btn-primary" onClick={handleSavePix} disabled={pixSaved}>
-                  {pixSaved ? <><CheckCircle2 size={18} /> Salvo!</> : 'Salvar Configuração'}
-                </button>
+        {isGiftModalOpen && (
+          <div className="adm-modal-overlay" onClick={() => setIsGiftModalOpen(false)}>
+            <div className="adm-modal-content" onClick={e => e.stopPropagation()}>
+              <div className="adm-modal-header"><h3>Inserir Presente</h3><button className="adm-close-btn" onClick={() => setIsGiftModalOpen(false)}><X size={20} /></button></div>
+              <div className="adm-modal-body">
+                 <form onSubmit={async (e) => {
+                   e.preventDefault();
+                   await api.addGift({ title: giftTitle, subtitle: giftSubtitle, brand: giftBrand, category: giftCategory, price: parseFloat(giftPrice) || 0, imageUrl: giftImageUrl, buyUrl: giftBuyUrl, isFeatured });
+                   setIsGiftModalOpen(false); loadAll();
+                 }} style={{ display: 'grid', gap: '1.2rem' }}>
+                    <div className="adm-form-field"><label>Título</label><input className="adm-login-input" value={giftTitle} onChange={e => setGiftTitle(e.target.value)} required /></div>
+                    <div className="adm-form-field"><label>Preço</label><input className="adm-login-input" value={giftPrice} onChange={e => setGiftPrice(e.target.value)} required /></div>
+                    <div className="adm-form-field"><label>URL Imagem</label><input className="adm-login-input" value={giftImageUrl} onChange={e => setGiftImageUrl(e.target.value)} required /></div>
+                    <button className="adm-btn-submit" style={{ width: '100%', justifyContent: 'center' }}>Salvar</button>
+                 </form>
               </div>
             </div>
-          </section>
+          </div>
         )}
       </main>
     </div>
