@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { LogOut, Key, Users, Gift, Trash2, Plus, Search, CheckCircle2, Phone, Mail, Loader2, CreditCard } from 'lucide-react';
+import { LogOut, Key, Users, Gift, Trash2, Plus, Search, CheckCircle2, Loader2, CreditCard } from 'lucide-react';
 import { api, type Confirmation, type Gift as GiftType } from '../services/api';
 import { generatePixPayload, maskPixKey, unmaskValue, maskPhone } from '../utils/pix';
 import './AdminPage.css';
