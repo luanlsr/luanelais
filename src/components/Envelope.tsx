@@ -47,17 +47,9 @@ const Envelope: React.FC = () => {
     '/images/lualelais7.jpeg',
   ];
 
-  const [currentPhoto, setCurrentPhoto] = useState(0);
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentPhoto((prev) => (prev + 1) % photos.length);
-    }, 8000); // 8 segundos
-    return () => clearInterval(timer);
-  }, [photos.length]);
 
   useEffect(() => {
     // Reset de rota para '/' ao carregar/atualizar a página
