@@ -92,9 +92,11 @@
 
 /* ──────────────── DASHBOARD ──────────────── */
 .adm-content {
-  max-width: 900px; /* Mais focado para visualização de lista */
+  width: 100%;
+  max-width: 1400px; /* Expansão para preenchimento total confortável */
   margin: 0 auto;
-  padding: 3rem 2rem;
+  padding: 3rem 4rem;
+  min-height: calc(100vh - 160px); /* Garante preenchimento vertical */
 }
 
 .adm-stats-grid {
@@ -375,7 +377,7 @@
 @media (max-width: 768px) {
   .adm-header { padding: 1rem 1.5rem; }
   .adm-header h1 { font-size: 1.1rem; }
-  .adm-content { padding: 1.5rem 1rem; }
+  .adm-content { padding: 2rem 1.5rem; }
   
   .adm-stats-grid { gap: 0.8rem; margin-bottom: 2rem; }
   .adm-stat-card { padding: 1.2rem 0.5rem; }

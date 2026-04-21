@@ -438,6 +438,32 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
+.inv-btn-solid-olive {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+  background: #2D3820;
+  color: white;
+  padding: 1.2rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+}
+
+.inv-btn-solid-olive:hover {
+  background: #c5a059;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(197, 160, 89, 0.2);
+}
+
 .inv-btn-ghost {
   background: none;
   border: none;
@@ -964,11 +990,17 @@
 }
 
 .inv-section-full {
-  padding: 8rem 2rem;
+  min-height: 100vh;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 100px 2rem 4rem; /* Padding compensando o nav de 80px */
 }
 
 .inv-section-full .inv-sec-body {
+  width: 100%;
   max-width: 800px;
   margin: 0 auto;
 }
@@ -1001,11 +1033,20 @@
   .inv-section-full {
     padding: 12rem 4rem;
   }
+
+  /* Ampliação Tipográfica Web */
+  .inv-sec-title { font-size: 1.4rem; letter-spacing: 4px; }
+  .inv-sec-name { font-size: 2.8rem; }
+  .inv-sec-meta { font-size: 1.1rem; }
+  .inv-rsvp-intro { font-size: 1.2rem; max-width: 600px; }
+  .inv-quote p { font-size: 2rem; line-height: 1.6; max-width: 900px; }
+  .inv-sec-icon { width: 60px; height: 60px; }
 }
 
 @media (max-width: 1023px) {
   .inv-hero-split {
-    height: 90vh;
+    min-height: 100vh;
+    height: 100vh;
     /* Ocupa quase a tela toda no mobile */
     display: block;
     /* Permite posicionamento absoluto interno */

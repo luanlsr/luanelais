@@ -356,6 +356,12 @@ const Envelope: React.FC = () => {
               </div>
               <div className="inv-sec-body">
                 <p className="inv-rsvp-intro" style={{ color: '#6a6a60' }}>Se desejar nos presentear:</p>
+                <div className="inv-gift-actions-top" style={{ marginBottom: '2.5rem', width: '100%' }}>
+                  <Link to="/presentes" className="inv-btn-solid-olive">
+                    Ver Lista de Presentes <ArrowRight size={20} />
+                  </Link>
+                </div>
+
                 <div className="inv-qr-frame" style={{ background: '#fff', padding: '15px', borderRadius: '4px' }}>
                   {pixData.key && (
                     <img
@@ -386,9 +392,6 @@ const Envelope: React.FC = () => {
                     <p className="inv-pix-beneficiary">Titular: <strong>{pixData.holder}</strong></p>
                   )}
                 </div>
-                <Link to="/presentes" className="inv-btn-outline" style={{ marginTop: '1.2rem' }}>
-                  Ver Lista de Presentes <ArrowRight size={14} />
-                </Link>
               </div>
             </section>
           </div>
