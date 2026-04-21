@@ -15,7 +15,7 @@ const GiftsPublicPage: React.FC = () => {
   return (
     <div className="gp-wrap">
       <header className="gp-header">
-        <Link to="/" className="gp-back">
+        <Link to="/" state={{ skipEnvelope: true }} className="gp-back">
           <ArrowLeft size={18} /> Voltar ao Convite
         </Link>
         <div className="gp-header-content">

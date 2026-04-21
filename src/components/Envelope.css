@@ -48,7 +48,8 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding-bottom: 8%; /* empurra os nomes levemente acima da ponta do V */
+  padding-bottom: 8%;
+  /* empurra os nomes levemente acima da ponta do V */
 }
 
 /* Camada 2 — corpo/frente do envelope — desliza para BAIXO */
@@ -134,24 +135,40 @@
   overflow: hidden;
 }
 
-/* ── Left sticky panel (desktop only) ── */
+/* ── Left sticky panel (Somente Desktop Wide) ── */
 .inv-left-panel {
   display: none;
 }
 
-/* ── Scrollable card ── */
+/* ── Wrapper do cartão scrollável ── */
 .inv-card-wrap {
-  flex: 1;
-  height: 100%;
+  width: 100%;
+  height: 100vh;
   overflow-y: auto;
   background: #fdfaf4;
   scrollbar-width: thin;
   scrollbar-color: #2D3820 transparent;
 }
 
+.inv-sections-grid {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+
+
+.mobile-only {
+  display: block;
+}
+
+.desktop-only {
+  display: none;
+}
+
 
 /* =============================================
-   OLIVE HEADER
+   MOBILE HEADER (DEFAULT)
    ============================================= */
 .inv-header-olive {
   background: #2D3820;
@@ -168,19 +185,28 @@
   line-height: 1;
 }
 
+.inv-left-date {
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+
 .inv-amp {
   color: rgba(255, 255, 255, 0.5);
   font-size: 0.75em;
 }
 
 /* =============================================
-   PHOTO
+   PHOTO & CAROUSEL
    ============================================= */
 .inv-photo-wrap {
   position: relative;
   width: 100%;
   height: clamp(240px, 55vw, 380px);
   overflow: hidden;
+  background: #2D3820;
 }
 
 .inv-photo-img {
@@ -199,6 +225,7 @@
   height: 45%;
   background: linear-gradient(to bottom, transparent, #fdfaf4);
   pointer-events: none;
+  z-index: 2;
 }
 
 /* =============================================
@@ -349,15 +376,25 @@
   text-align: center;
 }
 
+/* O conteúdo centralizado - AGORA TOTALMENTE EXPANDIDO */
+.inv-card-inner-max {
+  max-width: none;
+  width: 100%;
+  background: white;
+}
+
+
 .inv-map {
   width: 100%;
   margin: 1.2rem 0;
   border-radius: 2px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
 }
 
-.inv-map iframe { display: block; }
+.inv-map iframe {
+  display: block;
+}
 
 /* Buttons */
 .inv-btn-outline {
@@ -376,7 +413,11 @@
   cursor: pointer;
   background: none;
 }
-.inv-btn-outline:hover { background: #2D3820; color: white; }
+
+.inv-btn-outline:hover {
+  background: #2D3820;
+  color: white;
+}
 
 .inv-btn-solid {
   display: block;
@@ -392,7 +433,10 @@
   transition: all 0.25s;
   margin-top: 0.8rem;
 }
-.inv-btn-solid:hover { background: rgba(255, 255, 255, 0.2); }
+
+.inv-btn-solid:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
 
 .inv-btn-ghost {
   background: none;
@@ -405,10 +449,17 @@
   margin-top: 0.5rem;
   transition: color 0.2s;
 }
-.inv-btn-ghost:hover { color: rgba(255, 255, 255, 0.7); }
+
+.inv-btn-ghost:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
 
 /* RSVP */
-.inv-rsvp-form { width: 100%; display: flex; flex-direction: column; }
+.inv-rsvp-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
 
 .inv-rsvp-intro {
   font-size: 0.75rem;
@@ -429,10 +480,24 @@
   font-size: 1.2rem;
   transition: border-color 0.3s;
 }
-.inv-rsvp-input::placeholder { color: rgba(255, 255, 255, 0.22); font-size: 0.95rem; }
-.inv-rsvp-input:focus { outline: none; border-bottom-color: rgba(255, 255, 255, 0.5); }
 
-.inv-members { display: flex; flex-direction: column; gap: 0.6rem; width: 100%; margin-bottom: 0.8rem; }
+.inv-rsvp-input::placeholder {
+  color: rgba(255, 255, 255, 0.22);
+  font-size: 0.95rem;
+}
+
+.inv-rsvp-input:focus {
+  outline: none;
+  border-bottom-color: rgba(255, 255, 255, 0.5);
+}
+
+.inv-members {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  margin-bottom: 0.8rem;
+}
 
 .inv-member {
   display: flex;
@@ -445,7 +510,11 @@
   color: rgba(255, 255, 255, 0.72);
   font-size: 0.85rem;
 }
-.inv-member.selected { border-color: rgba(255, 255, 255, 0.45); background: rgba(255, 255, 255, 0.05); }
+
+.inv-member.selected {
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.05);
+}
 
 .inv-member-check {
   width: 20px;
@@ -457,7 +526,10 @@
   flex-shrink: 0;
   color: rgba(255, 255, 255, 0.88);
 }
-.inv-member.selected .inv-member-check { border-color: rgba(255, 255, 255, 0.65); }
+
+.inv-member.selected .inv-member-check {
+  border-color: rgba(255, 255, 255, 0.65);
+}
 
 .inv-loading {
   display: flex;
@@ -478,7 +550,12 @@
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 .inv-success {
   display: flex;
@@ -489,22 +566,41 @@
   text-align: center;
   color: rgba(255, 255, 255, 0.85);
 }
-.inv-success h3 { font-family: var(--font-script); font-size: 2rem; font-weight: 400; }
-.inv-success p { font-size: 0.72rem; opacity: 0.55; letter-spacing: 0.5px; }
 
-.inv-group { width: 100%; display: flex; flex-direction: column; }
+.inv-success h3 {
+  font-family: var(--font-script);
+  font-size: 2rem;
+  font-weight: 400;
+}
+
+.inv-success p {
+  font-size: 0.72rem;
+  opacity: 0.55;
+  letter-spacing: 0.5px;
+}
+
+.inv-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
 
 /* Gifts */
 .inv-qr-frame {
-  width: 150px;
-  height: 150px;
-  border: 1px dashed rgba(45, 56, 32, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 1rem auto;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
 }
-.inv-qr-inner { font-family: var(--font-script); font-size: 2rem; color: #2D3820; opacity: 0.45; }
+
+.inv-qr-inner {
+  font-family: var(--font-script);
+  font-size: 2rem;
+  color: #2D3820;
+  opacity: 0.45;
+}
 
 .inv-pix-block {
   display: flex;
@@ -517,7 +613,14 @@
   border: 1px solid rgba(45, 56, 32, 0.1);
   text-align: center;
 }
-.inv-pix-key { font-size: 0.72rem; color: #3a3a36; opacity: 0.7; word-break: break-all; }
+
+.inv-pix-key {
+  font-size: 0.72rem;
+  color: #3a3a36;
+  opacity: 0.7;
+  word-break: break-all;
+}
+
 .inv-pix-copy {
   display: inline-flex;
   align-items: center;
@@ -532,88 +635,456 @@
   background: none;
   transition: all 0.2s;
 }
-.inv-pix-copy:hover { background: #2D3820; color: white; }
+
+.inv-pix-copy:hover {
+  background: #2D3820;
+  color: white;
+}
 
 /* Footer */
-.inv-footer { background: #2D3820; padding: 2.5rem 2rem; text-align: center; }
-.inv-footer-script { font-family: var(--font-script); font-size: 2.2rem; color: rgba(255,255,255,0.7); margin-bottom: 0.3rem; }
-.inv-footer-date { font-size: 0.58rem; letter-spacing: 4px; text-transform: uppercase; color: rgba(255,255,255,0.28); }
+.inv-footer {
+  background: #2D3820;
+  padding: 2.5rem 2rem;
+  text-align: center;
+}
+
+.inv-footer-script {
+  font-family: var(--font-script);
+  font-size: 2.2rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 0.3rem;
+}
+
+.inv-footer-date {
+  font-size: 0.58rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.28);
+}
 
 
 /* =============================================
-   DESKTOP LAYOUT (≥900px)
+   WEDDING PORTAL LAYOUT
    ============================================= */
-@media (min-width: 900px) {
-  .inv-layout {
-    display: grid;
-    grid-template-columns: 360px 1fr;
+.inv-card-wrap {
+  width: 100%;
+  height: 100vh;
+  overflow-y: auto;
+  background: #fdfaf4;
+  scroll-behavior: smooth;
+}
+
+/* Navegação Fixa Dinâmica */
+.inv-nav-main {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 90px;
+  background: transparent;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Estado Scrolled */
+.inv-nav-main.scrolled {
+  height: 70px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(5px);
+}
+
+.inv-nav-content {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.inv-nav-logo {
+  font-family: var(--font-script);
+  font-size: 2.2rem;
+  /* Revertido para o original refinado */
+  color: #FFFFFF;
+  font-weight: 600;
+  line-height: 1;
+  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.4);
+  transition: all 0.4s ease;
+}
+
+.inv-nav-main.scrolled .inv-nav-logo {
+  color: #2D3820;
+  font-size: 1.8rem;
+  /* Um pouco menor no scroll */
+  text-shadow: none;
+}
+
+.inv-nav-links {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+}
+
+.inv-nav-links a {
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  /* Revertido para o original refinado */
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #FFFFFF;
+  text-decoration: none;
+  transition: all 0.4s ease;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.inv-nav-main.scrolled .inv-nav-links a {
+  color: #2D3820;
+  font-size: 0.68rem;
+  text-shadow: none;
+}
+
+.inv-nav-links a:hover {
+  transform: translateY(-2px);
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+.inv-nav-links a:hover {
+  opacity: 1;
+  letter-spacing: 5px;
+}
+
+/* Hero Section Side-by-Side & Mobile Overlay */
+.inv-hero-split {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  padding-top: 80px;
+  position: relative;
+}
+
+.hero-photo-side {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+.hero-mosaic-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000; /* Fundo preto para o degradê escuro */
+}
+
+.hero-mosaic-track {
+  display: flex;
+  height: 100%;
+  width: max-content;
+  will-change: transform;
+  background: #000;
+}
+
+.mosaic-img {
+  height: 100%;
+  width: auto;
+  min-width: 45vw; /* Aumentado para garantir cobertura na sobreposição */
+  object-fit: cover;
+  flex-shrink: 0;
+  margin-right: -8vw; /* Sobrepõe as fotos para fundir cores */
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
+  position: relative;
+}
+
+.mosaic-img:nth-child(even) {
+  z-index: 2; /* Cria um jogo de camadas para a fusão */
+}
+
+.hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 25%;
+}
+
+.hero-text-side {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  background: rgba(0, 0, 0, 0.35); /* Mesma profundidade do mobile */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: white; /* Texto universal do Hero */
+}
+
+.hero-sup {
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  letter-spacing: 8px;
+  color: #c5a059;
+  display: block;
+  margin-bottom: 1.5rem;
+}
+
+.hero-names {
+  font-family: var(--font-script);
+  font-size: clamp(4rem, 15vw, 8rem);
+  line-height: 0.85;
+  color: #2D3820;
+  margin-bottom: 2.5rem;
+}
+
+.hero-names span {
+  font-size: 0.4em;
+  color: #c5a059;
+  display: block;
+  margin: 0.5rem 0;
+}
+
+.hero-date-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Selo de Data Triádico (Inspirado na Referência) */
+.hero-date-portal {
+  margin-bottom: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.h-date-top {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  letter-spacing: 3px;
+  color: #2D3820;
+}
+
+.h-day-gold {
+  font-size: 3.5rem;
+  color: #c5a059;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.h-sep {
+  opacity: 0.2;
+  font-weight: 200;
+  font-size: 1.5rem;
+}
+
+.h-date-sub {
+  margin-top: 0.8rem;
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #6a6a60;
+  opacity: 0.8;
+}
+
+/* Garantir cor branca e sombra no Hero Global (Web e Mobile) */
+.hero-text-side .hero-names,
+.hero-text-side .hero-sup,
+.hero-text-side .h-date-top,
+.hero-text-side .h-date-sub,
+.hero-text-side .h-sep {
+  color: white !important;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+}
+
+.hero-text-side .h-day-gold {
+  color: #c5a059 !important;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.2) !important;
+}
+
+.hero-text-side .hero-cta {
+  background: white;
+  color: #2D3820;
+  border: none;
+}
+
+.hero-sub {
+  font-family: var(--font-serif);
+  font-size: 0.8rem;
+  letter-spacing: 3px;
+  color: #6a6a60;
+  margin-bottom: 3rem;
+}
+
+.hero-cta {
+  display: inline-block;
+  padding: 1.2rem 2.5rem;
+  background: #2D3820;
+  color: white;
+  text-decoration: none;
+  font-family: var(--font-serif);
+  font-size: 0.8rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  border-radius: 40px;
+  transition: transform 0.3s;
+}
+
+.hero-cta:hover {
+  transform: translateY(-5px);
+}
+
+/* Fluxo Vertical Expandido */
+.inv-quote {
+  padding: 10rem 2rem;
+  text-align: center;
+  background: #fdfaf4;
+}
+
+.inv-section-full {
+  padding: 8rem 2rem;
+  width: 100%;
+}
+
+.inv-section-full .inv-sec-body {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.inv-section-olive {
+  background: #2D3820;
+  color: white;
+}
+
+.inv-section-olive .inv-sec-title {
+  color: white;
+}
+
+@media (min-width: 1024px) {
+  .inv-hero-split {
+    flex-direction: row;
+    height: 100vh;
   }
 
-  .inv-left-panel {
+  .hero-photo-side {
+    flex: 1.2;
+    height: 100%;
+  }
+
+  .hero-text-side {
+    flex: 1;
+    height: 100%;
+  }
+
+  .inv-section-full {
+    padding: 12rem 4rem;
+  }
+}
+
+@media (max-width: 1023px) {
+  .inv-hero-split {
+    height: 90vh;
+    /* Ocupa quase a tela toda no mobile */
+    display: block;
+    /* Permite posicionamento absoluto interno */
+  }
+
+  .hero-photo-side {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
+  /* Texto ocupando TODA a tela por cima da foto no Mobile (Modo Dark) */
+  .hero-text-side {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+    background: rgba(0, 0, 0, 0.35);
+    /* Opacidade aumentada para 0.35 para ler melhor */
+    backdrop-filter: none;
+    padding: 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    text-align: center;
-    background: #2D3820;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    padding: 3rem 2.5rem;
-    flex-shrink: 0;
+    border-radius: 0;
+    color: white;
   }
 
-  .inv-left-names {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    line-height: 1.05;
+  .hero-sup,
+  .hero-names,
+  .hero-sub,
+  /* O conteúdo da data já é controlado pela classe .hero-date-portal e seus filhos */
+
+  .hero-names span {
+    color: rgba(255, 255, 255, 0.6);
   }
 
-  .inv-left-date {
-    font-family: var(--font-serif);
-    font-size: 0.75rem;
-    letter-spacing: 5px;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.38);
+  .hero-cta {
+    background: white;
+    color: #2D3820;
+    border: none;
   }
 
-  .inv-left-venue {
-    margin-top: 1rem;
-    font-size: 0.62rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.32);
-  }
-
-  .inv-left-city {
-    font-size: 0.58rem;
-    letter-spacing: 1px;
-    color: rgba(255, 255, 255, 0.22);
-    margin-top: 0.2rem;
-  }
-
-  .inv-header-olive { display: none; }
-
-  .inv-card-wrap {
-    max-width: 640px;
-    margin: 0 auto;
+  .hero-content-wrap {
     width: 100%;
+    text-align: center;
   }
 
-  .inv-photo-wrap { height: 420px; }
-  .inv-section { padding: 2.8rem 3rem; }
-  .inv-date-olive { padding: 2.5rem 3rem; }
-  .inv-quote { padding: 2rem 3rem 1.5rem; }
-  .inv-footer { padding: 3rem; }
-}
+  .hero-names {
+    font-size: 3.8rem;
+    /* Ajustado para caber melhor no novo fluxo centralizado */
+    margin-bottom: 2rem;
+  }
 
-/* =============================================
-   MOBILE
-   ============================================= */
-@media (max-width: 480px) {
-  .inv-header-olive { padding: 3rem 1.5rem 2rem; }
-  .inv-quote { padding: 1.5rem 1.5rem 1rem; }
-  .inv-date-olive { padding: 2rem 1.5rem; }
-  .inv-section { padding: 2rem 1.5rem; }
+  .hero-cta {
+    width: 100%;
+    text-align: center;
+  }
+
+  .inv-nav-content {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+  }
+
+  .inv-nav-logo {
+    font-size: 1.8rem;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  }
+
+  .inv-nav-links {
+    gap: 1.5rem;
+  }
+
+  .inv-nav-links a {
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
 }

@@ -1,3 +1,5 @@
+/* Font carregada via Google Fonts no index.html */
+
 :root {
   /* Colors - Reference: Olive & Cream */
   --primary-olive: #3D4931;
@@ -6,7 +8,7 @@
   --text-olive: #3D4931;
   --text-dark: #262F00;
   --gold-accent: #c5a059;
-  
+
   /* Envelope & Green Variations */
   --primary-green: #3D4931;
   --dark-green: #262F00;
@@ -14,15 +16,15 @@
   --parchment: #fdfaf3;
   --cream: #f4f1ea;
   --gold: #c5a059;
-  
+
   /* Shared Layers */
-  --shadow-subtle: 0 4px 20px rgba(0,0,0,0.03);
-  --shadow-strong: 0 10px 30px rgba(0,0,0,0.08);
+  --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.03);
+  --shadow-strong: 0 10px 30px rgba(0, 0, 0, 0.08);
 
   --font-serif: 'Cormorant Garamond', serif;
-  --font-script: 'Pinyon Script', cursive;
+  --font-script: 'Pinyon Script', 'Cormorant Garamond', cursive;
   --font-sans: 'Inter', sans-serif;
-  
+
   --transition-smooth: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
@@ -49,7 +51,10 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, .serif {
+h1,
+h2,
+h3,
+.serif {
   font-family: var(--font-serif);
 }
 
@@ -85,9 +90,11 @@ a {
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--primary-olive);
   border-radius: 10px;

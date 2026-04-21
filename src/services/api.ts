@@ -4,12 +4,15 @@
  */
 
 /* ── Guest ── */
+export type GuestCategory = 'padrinho' | 'familia_noiva' | 'familia_noivo' | 'convidado_noiva' | 'convidado_noivo' | 'outro';
+
 export interface Guest {
   id: string;
   name: string;
   group: string;
   confirmed: boolean;
   totalGuests: number;
+  category: GuestCategory;
 }
 
 /* ── Gift ── */
@@ -22,16 +25,16 @@ export interface Gift {
 }
 
 const INITIAL_GUESTS: Guest[] = [
-  { id: '1', name: 'Luan Nascimento', group: 'Família Nascimento', confirmed: false, totalGuests: 2 },
-  { id: '2', name: 'Laís Silva', group: 'Família Silva', confirmed: false, totalGuests: 4 },
-  { id: '3', name: 'João Silva', group: 'Família Silva', confirmed: false, totalGuests: 4 },
-  { id: '4', name: 'Maria silva', group: 'Família Silva', confirmed: false, totalGuests: 4 },
-  { id: '5', name: 'Roberto Silva', group: 'Família Silva', confirmed: false, totalGuests: 4 },
-  { id: '6', name: 'Ana Nascimento', group: 'Família Nascimento', confirmed: false, totalGuests: 2 },
+  { id: '1', name: 'Luan Nascimento', group: 'Família Nascimento', confirmed: false, totalGuests: 2, category: 'familia_noivo' },
+  { id: '2', name: 'Laís Silva', group: 'Família Silva', confirmed: false, totalGuests: 4, category: 'familia_noiva' },
+  { id: '3', name: 'João Silva', group: 'Família Silva', confirmed: false, totalGuests: 4, category: 'padrinho' },
+  { id: '4', name: 'Maria silva', group: 'Família Silva', confirmed: false, totalGuests: 4, category: 'padrinho' },
+  { id: '5', name: 'Roberto Silva', group: 'Família Silva', confirmed: false, totalGuests: 4, category: 'familia_noiva' },
+  { id: '6', name: 'Ana Nascimento', group: 'Família Nascimento', confirmed: false, totalGuests: 2, category: 'familia_noivo' },
 ];
 
 class WeddingAPI {
-  private GUESTS_KEY = 'wedding_guests_v2';
+  private GUESTS_KEY = 'wedding_guests_v3';
   private GIFTS_KEY  = 'wedding_gifts_v1';
   private PIX_STORAGE_KEY = 'wedding_pix_key';
 
@@ -133,6 +136,14 @@ class WeddingAPI {
 
   setPixKey(key: string): void {
     localStorage.setItem(this.PIX_STORAGE_KEY, key);
+  }
+
+  getPixType(): string {
+    return localStorage.getItem(this.PIX_STORAGE_KEY + '_type') || 'email';
+  }
+
+  setPixType(type: string): void {
+    localStorage.setItem(this.PIX_STORAGE_KEY + '_type', type);
   }
 }
 
