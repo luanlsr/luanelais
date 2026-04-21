@@ -96,15 +96,20 @@ export function maskPixKey(value: string, type: string): string {
       .replace(/(\d{4})(\d{1,2})$/, '$1-$2')
       .substring(0, 18);
   }
-  
-  if (type === 'phone') {
-    return cleanValue
-      .replace(/(\d{2})(\d)/, '($1) $2')
-      .replace(/(\d{5})(\d{4})$/, '$1-$2')
-      .substring(0, 15);
+
+  if (type === 'cell' || type === 'phone') {
+    return maskPhone(value);
   }
   
   return value;
+}
+
+export function maskPhone(value: string): string {
+  const cleanValue = value.replace(/\D/g, '');
+  return cleanValue
+    .replace(/(\d{2})(\d)/, '($1) $2')
+    .replace(/(\d{5})(\d{4})$/, '$1-$2')
+    .substring(0, 15);
 }
 
 export function unmaskValue(value: string): string {

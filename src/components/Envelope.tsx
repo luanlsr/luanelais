@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Users, Gift, CheckCircle2, Navigation, Copy, ArrowRight } from 'lucide-react';
+import { MapPin, Users, Gift, CheckCircle2, Navigation, Copy, ArrowRight, Trash2, Plus } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { api, type Guest } from '../services/api';
-import { generatePixPayload } from '../utils/pix';
+import { api } from '../services/api';
+import { generatePixPayload, maskPhone } from '../utils/pix';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './Envelope.css';
 
@@ -14,28 +14,27 @@ const Envelope: React.FC = () => {
   const navigate = useNavigate();
 
   const shouldSkipEnvelope = location.state?.skipEnvelope === true;
-
   const [coverStatus, setCoverStatus] = useState<CoverStatus>('closed');
 
-  // ✅ controla abertura via efeito (mais seguro)
   useEffect(() => {
     if (shouldSkipEnvelope) {
       setCoverStatus('open');
-
-      // limpa o state para não "grudar"
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [shouldSkipEnvelope, navigate, location.pathname]);
 
   // ── RSVP state ──
-  const [rsvpStatus, setRsvpStatus] = useState<'idle' | 'searching' | 'group' | 'loading' | 'success'>('idle');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedGroup, setSelectedGroup] = useState<Guest[]>([]);
-  const [confirmedIds, setConfirmedIds] = useState<string[]>([]);
+  const [rsvpStatus, setRsvpStatus] = useState<'idle' | 'form' | 'loading' | 'success'>('idle');
+  const [formData, setFormData] = useState({
+    fullName: '',
+    phone: '',
+    email: '',
+  });
+  const [children, setChildren] = useState<{ name: string; age: string }[]>([]);
 
-  // ── Pix copy ──
+  // ── Pix data ──
+  const [pixData, setPixData] = useState({ key: '', type: 'email', holder: '' });
   const [pixCopied, setPixCopied] = useState(false);
-  const PIX_KEY = api.getPixKey();
 
   const photos = [
     '/images/lualelais.jpeg',
@@ -52,10 +51,9 @@ const Envelope: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Reset de rota para '/' ao carregar/atualizar a página
     window.history.replaceState(null, '', '/');
     setActiveSection('');
-    
+
     const div = scrollRef.current;
     if (!div) return;
 
@@ -63,7 +61,6 @@ const Envelope: React.FC = () => {
       setScrolled(div.scrollTop > 50);
     };
 
-    // Sensor de Seção Ativa (Scroll Spy)
     const observerOptions = {
       root: div,
       threshold: 0.5,
@@ -83,13 +80,18 @@ const Envelope: React.FC = () => {
       if (el) observer.observe(el);
     });
 
+    const loadData = async () => {
+      const pix = await api.getPixData();
+      setPixData(pix);
+    };
+    loadData();
+
     div.addEventListener('scroll', handleScroll);
     return () => {
       div.removeEventListener('scroll', handleScroll);
       observer.disconnect();
     };
   }, []);
-
 
   const handleCoverClick = () => {
     if (coverStatus === 'closed') {
@@ -98,39 +100,27 @@ const Envelope: React.FC = () => {
     }
   };
 
-  const handleSearch = async (e: React.FormEvent) => {
+  const addChild = () => setChildren([...children, { name: '', age: '' }]);
+  const removeChild = (index: number) => setChildren(children.filter((_, i) => i !== index));
+  const updateChild = (index: number, field: 'name' | 'age', value: string) => {
+    const newChildren = [...children];
+    (newChildren[index] as any)[field] = value;
+    setChildren(newChildren);
+  };
+
+  const handleConfirm = async (e: React.FormEvent) => {
     e.preventDefault();
-    setRsvpStatus('searching');
-
-    const found = await api.searchGuest(searchQuery);
-
-    if (found) {
-      const group = await api.getGroup(found.group);
-      setSelectedGroup(group);
-      setConfirmedIds(group.filter(g => g.confirmed).map(g => g.id));
-      setRsvpStatus('group');
-    } else {
-      setRsvpStatus('idle');
-      alert('Seu nome não foi encontrado. Verifique a grafia ou entre em contato com os noivos.');
-    }
-  };
-
-  const toggleMember = (id: string) => {
-    setConfirmedIds(prev =>
-      prev.includes(id)
-        ? prev.filter(i => i !== id)
-        : [...prev, id]
-    );
-  };
-
-  const handleConfirm = async () => {
     setRsvpStatus('loading');
 
     try {
-      await api.confirmRSVP(confirmedIds);
+      await api.submitRSVP({
+        fullName: formData.fullName,
+        phone: formData.phone,
+        email: formData.email,
+        children: children
+      });
 
       setRsvpStatus('success');
-
       confetti({
         particleCount: 150,
         spread: 70,
@@ -139,13 +129,13 @@ const Envelope: React.FC = () => {
       });
 
     } catch {
-      setRsvpStatus('group');
+      setRsvpStatus('form');
       alert('Erro ao confirmar. Tente novamente.');
     }
   };
 
   const handleCopyPix = () => {
-    navigator.clipboard.writeText(PIX_KEY);
+    navigator.clipboard.writeText(pixData.key);
     setPixCopied(true);
     setTimeout(() => setPixCopied(false), 2000);
   };
@@ -154,16 +144,12 @@ const Envelope: React.FC = () => {
 
   return (
     <div className="env-wrapper">
-
-      {/* ── Conteúdo do convite ── */}
       <div className="inv-card-wrap" ref={scrollRef}>
-
-        {/* ── HEADER COM NAVEGAÇÃO (Apenas quando aberto) ── */}
         {coverStatus === 'open' && (
           <header className={`inv-nav-main ${scrolled ? 'scrolled' : ''}`}>
             <div className="inv-nav-content">
-              <div 
-                className="inv-nav-logo" 
+              <div
+                className="inv-nav-logo"
                 onClick={() => {
                   scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
                   window.history.pushState(null, '', '/');
@@ -183,52 +169,49 @@ const Envelope: React.FC = () => {
         )}
 
         <div className="inv-card-inner-max">
-            
-            {/* ── HERO SECTION IMERSIVO (WEB & MOBILE) ── */}
-            <section className="inv-hero-split">
-              <div className="hero-photo-side">
-                <div className="hero-mosaic-container">
-                  <motion.div 
-                    className="hero-mosaic-track"
-                    animate={{ x: ["0%", "-50%"] }}
-                    transition={{ 
-                      duration: 250, 
-                      repeat: Infinity, 
-                      ease: "linear" 
-                    }}
-                  >
-                    {[...photos, ...photos].map((img, idx) => (
-                      <img key={idx} src={img} alt="Snapshot" className="mosaic-img" />
-                    ))}
-                  </motion.div>
-                </div>
-                <div className="hero-photo-gradient" />
+          <section className="inv-hero-split">
+            <div className="hero-photo-side">
+              <div className="hero-mosaic-container">
+                <motion.div
+                  className="hero-mosaic-track"
+                  animate={{ x: ["0%", "-50%"] }}
+                  transition={{
+                    duration: 250,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
+                >
+                  {[...photos, ...photos].map((img, idx) => (
+                    <img key={idx} src={img} alt="Snapshot" className="mosaic-img" />
+                  ))}
+                </motion.div>
               </div>
+              <div className="hero-photo-gradient" />
+            </div>
 
-              <div className="hero-text-side">
-                <div className="hero-content-wrap">
-                  <span className="hero-sup">SAVE THE DATE</span>
-                  <h1 className="hero-names">
-                    Luan <br /> <span>&</span> Laís
-                  </h1>
-                  
-                  <div className="hero-date-portal">
-                    <div className="h-date-top">
-                      <span>NOV</span>
-                      <span className="h-sep">|</span>
-                      <span className="h-day-gold">07</span>
-                      <span className="h-sep">|</span>
-                      <span>2026</span>
-                    </div>
-                    <p className="h-date-sub">SÁBADO ÀS 17:00H</p>
+            <div className="hero-text-side">
+              <div className="hero-content-wrap">
+                <span className="hero-sup">SAVE THE DATE</span>
+                <h1 className="hero-names">
+                  Luan <br /> <span>&</span> Laís
+                </h1>
+
+                <div className="hero-date-portal">
+                  <div className="h-date-top">
+                    <span>NOV</span>
+                    <span className="h-sep">|</span>
+                    <span className="h-day-gold">07</span>
+                    <span className="h-sep">|</span>
+                    <span>2026</span>
                   </div>
-                  
-                  <a href="#rsvp" className="hero-cta">Confirmar Presença</a>
+                  <p className="h-date-sub">SÁBADO ÀS 17:00H</p>
                 </div>
-              </div>
-            </section>
 
-          {/* ── FRASE ── */}
+                <a href="#rsvp" className="hero-cta">Confirmar Presença</a>
+              </div>
+            </div>
+          </section>
+
           <div className="inv-quote">
             <div className="quote-art" />
             <p>
@@ -238,7 +221,6 @@ const Envelope: React.FC = () => {
           </div>
 
           <div className="inv-sections-vertical">
-            {/* ── LOCAL DA CERIMÔNIA ── */}
             <section id="cerimonia" className="inv-section-full">
               <div className="inv-sec-header">
                 <div className="inv-sec-icon"><MapPin size={20} /></div>
@@ -262,7 +244,6 @@ const Envelope: React.FC = () => {
               </div>
             </section>
 
-            {/* ── CONFIRMAR PRESENÇA ── */}
             <section id="rsvp" className="inv-section-full inv-section-olive">
               <div className="inv-sec-header">
                 <div className="inv-sec-icon inv-sec-icon-light"><Users size={20} /></div>
@@ -271,31 +252,82 @@ const Envelope: React.FC = () => {
               <div className="inv-sec-body">
                 <AnimatePresence mode="wait">
                   {rsvpStatus === 'idle' && (
-                    <motion.form key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onSubmit={handleSearch} className="inv-rsvp-form">
-                      <p className="inv-rsvp-intro">Seu nome está na nossa lista de convidados.</p>
-                      <input type="text" placeholder="Seu nome completo..." className="inv-rsvp-input" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} required />
-                      <button type="submit" className="inv-btn-solid">Verificar Convite</button>
-                    </motion.form>
-                  )}
-                  {rsvpStatus === 'searching' && (
-                    <motion.div key="searching" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="inv-loading">
-                      <div className="inv-spinner" /><p>Buscando na lista...</p>
+                    <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="inv-rsvp-idle">
+                      <p className="inv-rsvp-intro">Confirme sua presença no nosso grande dia preenchendo o formulário abaixo.</p>
+                      <button onClick={() => setRsvpStatus('form')} className="inv-btn-solid">Confirmar Presença</button>
                     </motion.div>
                   )}
-                  {rsvpStatus === 'group' && (
-                    <motion.div key="group" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="inv-group">
-                      <p className="inv-rsvp-intro">Selecione quem irá nos prestigiar:</p>
-                      <div className="inv-members">
-                        {selectedGroup.map(guest => (
-                          <motion.div key={guest.id} whileTap={{ scale: 0.97 }} className={`inv-member ${confirmedIds.includes(guest.id) ? 'selected' : ''}`} onClick={() => toggleMember(guest.id)}>
-                            <div className="inv-member-check">{confirmedIds.includes(guest.id) && <CheckCircle2 size={16} />}</div>
-                            <span>{guest.name}</span>
+                  {rsvpStatus === 'form' && (
+                    <motion.form key="form" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} onSubmit={handleConfirm} className="inv-rsvp-form">
+                      <div className="rsvp-field-group">
+                        <label>Nome Completo</label>
+                        <input
+                          type="text"
+                          placeholder="Seu nome aqui..."
+                          value={formData.fullName}
+                          onChange={e => setFormData({ ...formData, fullName: e.target.value })}
+                          required
+                        />
+                      </div>
+
+                      <div className="rsvp-field-row">
+                        <div className="rsvp-field-group">
+                          <label>WhatsApp / Telefone</label>
+                          <input
+                            type="tel"
+                            placeholder="(00) 00000-0000"
+                            value={formData.phone}
+                            onChange={e => setFormData({ ...formData, phone: maskPhone(e.target.value) })}
+                            required
+                          />
+                        </div>
+                        <div className="rsvp-field-group">
+                          <label>E-mail</label>
+                          <input
+                            type="email"
+                            placeholder="seu@email.com"
+                            value={formData.email}
+                            onChange={e => setFormData({ ...formData, email: e.target.value })}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="rsvp-children-section">
+                        <div className="rsvp-children-header">
+                          <label>Filhos Pequenos?</label>
+                          <button type="button" onClick={addChild} className="btn-add-child">
+                            <Plus size={14} /> Adicionar Filho
+                          </button>
+                        </div>
+
+                        {children.map((child, idx) => (
+                          <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} key={idx} className="rsvp-child-row">
+                            <input
+                              placeholder="Nome do filho"
+                              value={child.name}
+                              onChange={e => updateChild(idx, 'name', e.target.value)}
+                              required
+                            />
+                            <input
+                              placeholder="Idade"
+                              type="number"
+                              style={{ width: '80px' }}
+                              value={child.age}
+                              onChange={e => updateChild(idx, 'age', e.target.value)}
+                              required
+                            />
+                            <button type="button" onClick={() => removeChild(idx)} className="btn-remove-child">
+                              <Trash2 size={16} />
+                            </button>
                           </motion.div>
                         ))}
                       </div>
-                      <button onClick={handleConfirm} className="inv-btn-solid">Confirmar Presença</button>
-                      <button onClick={() => setRsvpStatus('idle')} className="inv-btn-ghost">Não é você?</button>
-                    </motion.div>
+
+                      <div className="rsvp-actions">
+                        <button type="submit" className="inv-btn-solid">Salvar Confirmação</button>
+                        <button type="button" onClick={() => setRsvpStatus('idle')} className="inv-btn-ghost">Cancelar</button>
+                      </div>
+                    </motion.form>
                   )}
                   {rsvpStatus === 'loading' && (
                     <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="inv-loading">
@@ -304,16 +336,19 @@ const Envelope: React.FC = () => {
                   )}
                   {rsvpStatus === 'success' && (
                     <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="inv-success">
-                      <CheckCircle2 size={52} /><h3>Tudo Pronto!</h3>
+                      <CheckCircle2 size={52} /><h3>Confirmado com Sucesso!</h3>
                       <p>Mal podemos esperar para celebrar com você.</p>
-                      <button onClick={() => setRsvpStatus('idle')} className="inv-btn-ghost">Confirmar outra pessoa</button>
+                      <button onClick={() => {
+                        setRsvpStatus('idle');
+                        setFormData({ fullName: '', phone: '', email: '' });
+                        setChildren([]);
+                      }} className="inv-btn-ghost">Confirmar outra pessoa</button>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
             </section>
 
-            {/* ── SUGESTÃO DE PRESENTE ── */}
             <section id="presentes" className="inv-section-full">
               <div className="inv-sec-header">
                 <div className="inv-sec-icon"><Gift size={20} /></div>
@@ -322,19 +357,34 @@ const Envelope: React.FC = () => {
               <div className="inv-sec-body">
                 <p className="inv-rsvp-intro" style={{ color: '#6a6a60' }}>Se desejar nos presentear:</p>
                 <div className="inv-qr-frame" style={{ background: '#fff', padding: '15px', borderRadius: '4px' }}>
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(generatePixPayload(PIX_KEY))}&ecc=M`}
-                    alt="QR Code Pix"
-                    width={160}
-                    height={160}
-                    style={{ display: 'block' }}
-                  />
+                  {pixData.key && (
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(generatePixPayload(pixData.key))}&ecc=M`}
+                      alt="QR Code Pix"
+                      width={160}
+                      height={160}
+                      style={{ display: 'block' }}
+                    />
+                  )}
                 </div>
-                <div className="inv-pix-block">
-                  <span className="inv-pix-key">{PIX_KEY}</span>
-                  <button className="inv-pix-copy" onClick={handleCopyPix}>
-                    <Copy size={13} /> {pixCopied ? 'Copiado!' : 'Copiar chave Pix'}
-                  </button>
+                <div className="inv-pix-details-wrap">
+                  <p className="inv-pix-type-label">
+                    Chave {
+                      pixData.type === 'cell' ? 'Celular' :
+                        pixData.type === 'cpf' ? 'CPF' :
+                          pixData.type === 'email' ? 'E-mail' :
+                            pixData.type === 'cnpj' ? 'CNPJ' : 'Aleatória'
+                    }
+                  </p>
+                  <div className="inv-pix-block">
+                    <span className="inv-pix-key">{pixData.key}</span>
+                    <button className="inv-pix-copy" onClick={handleCopyPix}>
+                      <Copy size={13} /> {pixCopied ? 'Copiado!' : 'Copiar chave Pix'}
+                    </button>
+                  </div>
+                  {pixData.holder && (
+                    <p className="inv-pix-beneficiary">Titular: <strong>{pixData.holder}</strong></p>
+                  )}
                 </div>
                 <Link to="/presentes" className="inv-btn-outline" style={{ marginTop: '1.2rem' }}>
                   Ver Lista de Presentes <ArrowRight size={14} />
@@ -347,11 +397,9 @@ const Envelope: React.FC = () => {
             <h2 style={{ fontFamily: 'var(--font-script)', fontSize: '3.5rem', marginBottom: '1rem', opacity: 0.9 }}>Luan & Laís</h2>
             <p style={{ fontFamily: 'var(--font-serif)', fontSize: '0.7rem', letterSpacing: '4px', opacity: 0.5, textTransform: 'uppercase' }}>07 de Novembro de 2026</p>
           </footer>
-
         </div>
       </div>
 
-      {/* ── ENVELOPE ── */}
       <AnimatePresence>
         {coverStatus !== 'open' && (
           <div
@@ -369,7 +417,6 @@ const Envelope: React.FC = () => {
               <div className="env-bottom-content">
                 <div className="env-divider" />
                 <p className="env-date-text">07 . 11 . 2026</p>
-
                 <motion.p
                   className="env-hint"
                   animate={{ opacity: [0.3, 0.7, 0.3] }}
@@ -396,7 +443,6 @@ const Envelope: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
-
     </div>
   );
 };

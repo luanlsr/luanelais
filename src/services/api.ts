@@ -1,149 +1,237 @@
-/**
- * API SERVICE - WEDDING PAGE
- * Robust persistence layer simulating a real backend.
- */
+import { createClient } from '@supabase/supabase-js';
 
-/* ── Guest ── */
-export type GuestCategory = 'padrinho' | 'familia_noiva' | 'familia_noivo' | 'convidado_noiva' | 'convidado_noivo' | 'outro';
+/* ── Supabase Configuration ── */
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const WEDDING_ID = 'c28206d4-9c4b-4cb3-8a4a-9045e7b0bd8a';
 
-export interface Guest {
-  id: string;
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+/* ── Confirmation ── */
+export interface Child {
   name: string;
-  group: string;
-  confirmed: boolean;
-  totalGuests: number;
-  category: GuestCategory;
+  age: string;
+}
+
+export interface Confirmation {
+  id: string;
+  fullName: string;
+  phone: string;
+  email: string;
+  children: Child[];
+  createdAt?: string;
 }
 
 /* ── Gift ── */
 export interface Gift {
   id: string;
   title: string;
+  subtitle?: string;
+  brand?: string;
+  category: string;
   imageUrl: string;
   price: number;
   buyUrl: string;
+  isFeatured?: boolean;
 }
 
-const INITIAL_GUESTS: Guest[] = [
-  { id: '1', name: 'Luan Nascimento', group: 'Família Nascimento', confirmed: false, totalGuests: 2, category: 'familia_noivo' },
-  { id: '2', name: 'Laís Silva', group: 'Família Silva', confirmed: false, totalGuests: 4, category: 'familia_noiva' },
-  { id: '3', name: 'João Silva', group: 'Família Silva', confirmed: false, totalGuests: 4, category: 'padrinho' },
-  { id: '4', name: 'Maria silva', group: 'Família Silva', confirmed: false, totalGuests: 4, category: 'padrinho' },
-  { id: '5', name: 'Roberto Silva', group: 'Família Silva', confirmed: false, totalGuests: 4, category: 'familia_noiva' },
-  { id: '6', name: 'Ana Nascimento', group: 'Família Nascimento', confirmed: false, totalGuests: 2, category: 'familia_noivo' },
-];
-
 class WeddingAPI {
-  private GUESTS_KEY = 'wedding_guests_v3';
-  private GIFTS_KEY  = 'wedding_gifts_v1';
-  private PIX_STORAGE_KEY = 'wedding_pix_key';
+  /* ─────────── RSVP (Confirmations) ─────────── */
 
-  constructor() {
-    if (!localStorage.getItem(this.GUESTS_KEY)) {
-      localStorage.setItem(this.GUESTS_KEY, JSON.stringify(INITIAL_GUESTS));
-    }
-    if (!localStorage.getItem(this.GIFTS_KEY)) {
-      localStorage.setItem(this.GIFTS_KEY, JSON.stringify([]));
-    }
+  async submitRSVP(data: Omit<Confirmation, 'id' | 'createdAt'>): Promise<void> {
+    const { error } = await supabase
+      .from('confirmacoes')
+      .insert([{
+        wedding_id: WEDDING_ID,
+        full_name: data.fullName,
+        phone: data.phone,
+        email: data.email,
+        children: data.children
+      }]);
+
+    if (error) throw error;
   }
 
-  /* ─────────── GUESTS ─────────── */
+  async getConfirmations(): Promise<Confirmation[]> {
+    const { data, error } = await supabase
+      .from('confirmacoes')
+      .select('*')
+      .eq('wedding_id', WEDDING_ID)
+      .order('created_at', { ascending: false });
 
-  private async loadGuests(): Promise<Guest[]> {
-    await new Promise(r => setTimeout(r, 80));
-    return JSON.parse(localStorage.getItem(this.GUESTS_KEY) || '[]');
-  }
+    if (error || !data) return [];
 
-  private async saveGuests(guests: Guest[]): Promise<void> {
-    await new Promise(r => setTimeout(r, 80));
-    localStorage.setItem(this.GUESTS_KEY, JSON.stringify(guests));
-  }
-
-  async searchGuest(name: string): Promise<Guest | null> {
-    const guests = await this.loadGuests();
-    return guests.find(g => g.name.toLowerCase().includes(name.toLowerCase())) || null;
-  }
-
-  async getGroup(groupName: string): Promise<Guest[]> {
-    const guests = await this.loadGuests();
-    return guests.filter(g => g.group === groupName);
-  }
-
-  async confirmRSVP(ids: string[]): Promise<void> {
-    const guests = await this.loadGuests();
-    const updated = guests.map(g => ({
-      ...g,
-      confirmed: ids.includes(g.id) ? true : g.confirmed,
+    return data.map(c => ({
+      id: c.id,
+      fullName: c.full_name,
+      phone: c.phone,
+      email: c.email,
+      children: c.children || [],
+      createdAt: c.created_at
     }));
-    await this.saveGuests(updated);
+  }
+
+  async removeConfirmation(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('confirmacoes')
+      .delete()
+      .eq('id', id)
+      .eq('wedding_id', WEDDING_ID);
+
+    if (error) throw error;
   }
 
   async getAdminStats() {
-    const guests = await this.loadGuests();
-    const confirmedCount = guests.filter(g => g.confirmed).length;
+    const { data, error } = await supabase
+      .from('confirmacoes')
+      .select('id, children')
+      .eq('wedding_id', WEDDING_ID);
+
+    if (error || !data) return { totalGuests: 0, totalConfirmations: 0 };
+
+    const totalConfirmations = data.length;
+    let totalGuests = totalConfirmations;
+    
+    data.forEach(c => {
+      if (Array.isArray(c.children)) {
+        totalGuests += c.children.length;
+      }
+    });
+
     return {
-      total: guests.length,
-      confirmed: confirmedCount,
-      pending: guests.length - confirmedCount,
+      totalConfirmations,
+      totalGuests
     };
   }
 
-  async getAllGuestsForAdmin(): Promise<Guest[]> {
-    return await this.loadGuests();
-  }
-
-  async addGuest(guest: Omit<Guest, 'id'>): Promise<Guest> {
-    const guests = await this.loadGuests();
-    const newGuest: Guest = { ...guest, id: crypto.randomUUID() };
-    await this.saveGuests([...guests, newGuest]);
-    return newGuest;
-  }
-
-  async removeGuest(id: string): Promise<void> {
-    const guests = await this.loadGuests();
-    await this.saveGuests(guests.filter(g => g.id !== id));
-  }
-
-  /* ─────────── GIFTS ─────────── */
+  /* ─────────── GIFS ─────────── */
 
   async getGifts(): Promise<Gift[]> {
-    return JSON.parse(localStorage.getItem(this.GIFTS_KEY) || '[]');
+    const { data, error } = await supabase
+      .from('lista_presentes')
+      .select('*')
+      .eq('wedding_id', WEDDING_ID)
+      .order('is_featured', { ascending: false })
+      .order('created_at', { ascending: false });
+
+    if (error || !data) return [];
+
+    return data.map(g => ({
+      id: g.id,
+      title: g.title,
+      subtitle: g.subtitle,
+      brand: g.brand,
+      category: g.category || 'Outros',
+      imageUrl: g.image_url,
+      price: Number(g.price),
+      buyUrl: g.buy_url,
+      isFeatured: g.is_featured
+    }));
   }
 
   async addGift(gift: Omit<Gift, 'id'>): Promise<Gift> {
-    const gifts = await this.getGifts();
-    const newGift: Gift = { ...gift, id: crypto.randomUUID() };
-    localStorage.setItem(this.GIFTS_KEY, JSON.stringify([...gifts, newGift]));
-    return newGift;
+    const { data, error } = await supabase
+      .from('lista_presentes')
+      .insert([{
+        wedding_id: WEDDING_ID,
+        title: gift.title,
+        subtitle: gift.subtitle,
+        brand: gift.brand,
+        category: gift.category,
+        image_url: gift.imageUrl,
+        price: gift.price,
+        buy_url: gift.buyUrl,
+        is_featured: gift.isFeatured
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return {
+      id: data.id,
+      title: data.title,
+      subtitle: data.subtitle,
+      brand: data.brand,
+      category: data.category,
+      imageUrl: data.image_url,
+      price: Number(data.price),
+      buyUrl: data.buy_url,
+      isFeatured: data.is_featured
+    };
   }
 
   async updateGift(id: string, data: Partial<Omit<Gift, 'id'>>): Promise<void> {
-    const gifts = await this.getGifts();
-    const updated = gifts.map(g => (g.id === id ? { ...g, ...data } : g));
-    localStorage.setItem(this.GIFTS_KEY, JSON.stringify(updated));
+    const updatePayload: any = {};
+    if (data.title) updatePayload.title = data.title;
+    if (data.subtitle) updatePayload.subtitle = data.subtitle;
+    if (data.brand) updatePayload.brand = data.brand;
+    if (data.category) updatePayload.category = data.category;
+    if (data.imageUrl) updatePayload.image_url = data.imageUrl;
+    if (data.price) updatePayload.price = data.price;
+    if (data.buyUrl) updatePayload.buy_url = data.buyUrl;
+    if (data.isFeatured !== undefined) updatePayload.is_featured = data.isFeatured;
+
+    const { error } = await supabase
+      .from('lista_presentes')
+      .update(updatePayload)
+      .eq('id', id)
+      .eq('wedding_id', WEDDING_ID);
+
+    if (error) throw error;
   }
 
   async removeGift(id: string): Promise<void> {
-    const gifts = await this.getGifts();
-    localStorage.setItem(this.GIFTS_KEY, JSON.stringify(gifts.filter(g => g.id !== id)));
+    const { error } = await supabase
+      .from('lista_presentes')
+      .delete()
+      .eq('id', id)
+      .eq('wedding_id', WEDDING_ID);
+
+    if (error) throw error;
   }
 
   /* ─────────── PIX ─────────── */
 
-  getPixKey(): string {
-    return localStorage.getItem(this.PIX_STORAGE_KEY) || 'luanelais@gmail.com';
+  async getPixData() {
+    const { data, error } = await supabase
+      .from('chaves_pix')
+      .select('*')
+      .eq('wedding_id', WEDDING_ID)
+      .limit(1)
+      .single();
+
+    if (error || !data) return { key: '21966785809', type: 'email', holder: '' };
+
+    return {
+      key: data.key_value,
+      type: data.key_type,
+      holder: data.holder_name
+    };
   }
 
-  setPixKey(key: string): void {
-    localStorage.setItem(this.PIX_STORAGE_KEY, key);
-  }
+  async updatePixData(key: string, type: string, holder: string): Promise<void> {
+    const { data } = await supabase
+      .from('chaves_pix')
+      .select('id')
+      .eq('wedding_id', WEDDING_ID)
+      .limit(1)
+      .single();
 
-  getPixType(): string {
-    return localStorage.getItem(this.PIX_STORAGE_KEY + '_type') || 'email';
-  }
-
-  setPixType(type: string): void {
-    localStorage.setItem(this.PIX_STORAGE_KEY + '_type', type);
+    if (data) {
+      await supabase.from('chaves_pix').update({
+        key_value: key,
+        key_type: type,
+        holder_name: holder
+      }).eq('id', data.id).eq('wedding_id', WEDDING_ID);
+    } else {
+      await supabase.from('chaves_pix').insert([{
+        wedding_id: WEDDING_ID,
+        key_value: key,
+        key_type: type,
+        holder_name: holder
+      }]);
+    }
   }
 }
 
