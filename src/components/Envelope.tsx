@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Users, Gift, CheckCircle2, Navigation, Copy, ArrowRight, Trash2, Plus } from 'lucide-react';
+import { MapPin, Users, Gift, CheckCircle2, Navigation, Copy, ArrowRight, Trash2, Plus, Volume2, VolumeX } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { api } from '../services/api';
 import { generatePixPayload, maskPhone } from '../utils/pix';
@@ -15,6 +15,9 @@ const Envelope: React.FC = () => {
 
   const shouldSkipEnvelope = location.state?.skipEnvelope === true;
   const [coverStatus, setCoverStatus] = useState<CoverStatus>('closed');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showQRCode, setShowQRCode] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
     if (shouldSkipEnvelope) {
@@ -96,8 +99,24 @@ const Envelope: React.FC = () => {
   const handleCoverClick = () => {
     if (coverStatus === 'closed') {
       setCoverStatus('opening');
-      setTimeout(() => setCoverStatus('open'), 1000);
+      setTimeout(() => {
+        setCoverStatus('open');
+        // Tenta iniciar a música quando o usuário interage para abrir o envelope
+        if (audioRef.current) {
+          audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+        }
+      }, 1000);
     }
+  };
+
+  const toggleAudio = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
   };
 
   const addChild = () => setChildren([...children, { name: '', age: '' }]);
@@ -362,36 +381,59 @@ const Envelope: React.FC = () => {
                   </Link>
                 </div>
 
-                <div className="inv-qr-frame" style={{ background: '#fff', padding: '15px', borderRadius: '4px' }}>
-                  {pixData.key && (
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(generatePixPayload(pixData.key))}&ecc=M`}
-                      alt="QR Code Pix"
-                      width={160}
-                      height={160}
-                      style={{ display: 'block' }}
-                    />
+                <p className="inv-rsvp-intro" style={{ marginTop: '2rem', color: '#8b8b80', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+                  Ou se preferir nos presentear com uma contribuição livre:
+                </p>
+                
+                <button 
+                  onClick={() => setShowQRCode(!showQRCode)}
+                  className="inv-btn-outline" 
+                  style={{ fontSize: '0.75rem', padding: '0.8rem 2rem' }}
+                >
+                  {showQRCode ? 'Ocultar Chave Pix' : 'Clique para ver a Chave Pix'}
+                </button>
+
+                <AnimatePresence>
+                  {showQRCode && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10, height: 0 }}
+                      animate={{ opacity: 1, y: 0, height: 'auto' }}
+                      exit={{ opacity: 0, y: -10, height: 0 }}
+                      style={{ overflow: 'hidden', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+                    >
+                      <div className="inv-qr-frame" style={{ background: '#fff', padding: '15px', borderRadius: '4px', marginTop: '2rem' }}>
+                        {pixData.key && (
+                          <img
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(generatePixPayload(pixData.key))}&ecc=M`}
+                            alt="QR Code Pix"
+                            width={130}
+                            height={130}
+                            style={{ display: 'block' }}
+                          />
+                        )}
+                      </div>
+                      <div className="inv-pix-details-wrap">
+                        <p className="inv-pix-type-label">
+                          Chave {
+                            pixData.type === 'cell' ? 'Celular' :
+                              pixData.type === 'cpf' ? 'CPF' :
+                                pixData.type === 'email' ? 'E-mail' :
+                                  pixData.type === 'cnpj' ? 'CNPJ' : 'Aleatória'
+                          }
+                        </p>
+                        <div className="inv-pix-block">
+                          <span className="inv-pix-key">{pixData.key}</span>
+                          <button className="inv-pix-copy" onClick={handleCopyPix}>
+                            <Copy size={13} /> {pixCopied ? 'Copiado!' : 'Copiar chave Pix'}
+                          </button>
+                        </div>
+                        {pixData.holder && (
+                          <p className="inv-pix-beneficiary">Titular: <strong>{pixData.holder}</strong></p>
+                        )}
+                      </div>
+                    </motion.div>
                   )}
-                </div>
-                <div className="inv-pix-details-wrap">
-                  <p className="inv-pix-type-label">
-                    Chave {
-                      pixData.type === 'cell' ? 'Celular' :
-                        pixData.type === 'cpf' ? 'CPF' :
-                          pixData.type === 'email' ? 'E-mail' :
-                            pixData.type === 'cnpj' ? 'CNPJ' : 'Aleatória'
-                    }
-                  </p>
-                  <div className="inv-pix-block">
-                    <span className="inv-pix-key">{pixData.key}</span>
-                    <button className="inv-pix-copy" onClick={handleCopyPix}>
-                      <Copy size={13} /> {pixCopied ? 'Copiado!' : 'Copiar chave Pix'}
-                    </button>
-                  </div>
-                  {pixData.holder && (
-                    <p className="inv-pix-beneficiary">Titular: <strong>{pixData.holder}</strong></p>
-                  )}
-                </div>
+                </AnimatePresence>
               </div>
             </section>
           </div>
@@ -446,6 +488,21 @@ const Envelope: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* ── AUDIO SYSTEM (DISCREET) ── */}
+      <audio ref={audioRef} loop>
+        <source src="/musicas/Until I Found You (Em Beihold Version) - Stephen Sanchez (youtube).mp3" type="audio/mpeg" />
+      </audio>
+
+      <motion.button 
+        className="inv-audio-control"
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        onClick={toggleAudio}
+        title="Gerenciar Música"
+      >
+        {isPlaying ? <Volume2 size={20} /> : <VolumeX size={20} />}
+      </motion.button>
     </div>
   );
 };

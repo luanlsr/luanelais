@@ -790,6 +790,35 @@
   background: currentColor;
 }
 
+.inv-nav-audio-btn {
+  background: none;
+  border: none;
+  color: white;
+  padding: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 1rem;
+  transition: all 0.3s ease;
+  opacity: 0.8;
+  position: relative;
+}
+
+.inv-nav-audio-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  color: #c5a059;
+}
+
+.inv-nav-main.scrolled .inv-nav-audio-btn {
+  color: #2D3820;
+}
+
+.inv-nav-main.scrolled .inv-nav-audio-btn:hover {
+  color: #c5a059;
+}
+
 /* Hero Section Side-by-Side & Mobile Overlay */
 .inv-hero-split {
   display: flex;
@@ -1115,22 +1144,28 @@
   .inv-nav-content {
     display: flex;
     justify-content: space-between;
-    padding: 0 1.5rem;
+    padding: 0 1rem;
   }
 
   .inv-nav-logo {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    flex-shrink: 0;
   }
 
   .inv-nav-links {
-    gap: 1.5rem;
+    gap: 0.8rem;
   }
 
   .inv-nav-links a {
-    font-size: 0.65rem;
+    font-size: 0.58rem;
     letter-spacing: 2px;
     text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+
+  .inv-nav-audio-btn {
+    margin-left: 0.5rem;
+    padding: 0.2rem;
   }
 }
 /* -- RSVP NEW FORM STYLES -- */
@@ -1310,3 +1345,37 @@
   font-weight: 600;
 }
 
+/* ── AUDIO CONTROL ── */
+.inv-audio-control {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  width: 50px;
+  height: 50px;
+  background: #2D3820;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  z-index: 50000;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.inv-audio-control:hover {
+  transform: scale(1.1);
+  background: #c5a059;
+  box-shadow: 0 15px 45px rgba(197, 160, 89, 0.4);
+}
+
+@media (max-width: 768px) {
+  .inv-audio-control {
+    bottom: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+  }
+}
