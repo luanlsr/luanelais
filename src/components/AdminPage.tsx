@@ -36,7 +36,7 @@ const AdminPage: React.FC = () => {
 
   const closeDialog = () => setDialog(prev => ({ ...prev, isOpen: false }));
   const showInfo = (title: string, message: string) => setDialog({ isOpen: true, title, message, type: 'info' });
-  const showConfirm = (title: string, message: string, onConfirm: () => void) => 
+  const showConfirm = (title: string, message: string, onConfirm: () => void) =>
     setDialog({ isOpen: true, title, message, type: 'confirm', onConfirm });
 
   /* ── GIFT MODAL ── */
@@ -77,9 +77,9 @@ const AdminPage: React.FC = () => {
 
   const handleLogout = () => {
     showConfirm('Sair do Painel', 'Deseja realmente encerrar sua sessão?', () => {
-       sessionStorage.removeItem('admin_auth');
-       setAuthed(false);
-       closeDialog();
+      sessionStorage.removeItem('admin_auth');
+      setAuthed(false);
+      closeDialog();
     });
   };
 
@@ -97,8 +97,8 @@ const AdminPage: React.FC = () => {
   const filteredGuests = useMemo(() => {
     if (!guestSearch.trim()) return confirmations;
     const q = guestSearch.toLowerCase();
-    return confirmations.filter(c => 
-      c.fullName.toLowerCase().includes(q) || 
+    return confirmations.filter(c =>
+      c.fullName.toLowerCase().includes(q) ||
       c.email?.toLowerCase().includes(q) ||
       c.phone.includes(q)
     );
@@ -180,14 +180,14 @@ const AdminPage: React.FC = () => {
                     </div>
                     {isExpanded && (
                       <div className="adm-row-detail" onClick={e => e.stopPropagation()}>
-                         <div className="adm-detail-item"><label><Mail size={10} /> E-mail</label><p>{c.email || '—'}</p></div>
-                         <div className="adm-detail-item"><label><Phone size={10} /> Telefone</label><p>{maskPhone(c.phone)}</p></div>
-                         {c.children && c.children.length > 0 && (
-                            <div className="adm-detail-item" style={{ gridColumn: '1 / -1' }}>
-                              <label><Hash size={10} /> Dependentes</label>
-                              <div>{c.children.map((ch, i) => <span key={i} className="adm-badge-child">{ch.name} ({ch.age}a)</span>)}</div>
-                            </div>
-                         )}
+                        <div className="adm-detail-item"><label><Mail size={10} /> E-mail</label><p>{c.email || '—'}</p></div>
+                        <div className="adm-detail-item"><label><Phone size={10} /> Telefone</label><p>{maskPhone(c.phone)}</p></div>
+                        {c.children && c.children.length > 0 && (
+                          <div className="adm-detail-item" style={{ gridColumn: '1 / -1' }}>
+                            <label><Hash size={10} /> Dependentes</label>
+                            <div>{c.children.map((ch, i) => <span key={i} className="adm-badge-child">{ch.name} ({ch.age}a)</span>)}</div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -195,8 +195,8 @@ const AdminPage: React.FC = () => {
               })}
             </div>
             {visibleCount < filteredGuests.length && (
-              <button 
-                className="adm-load-more" 
+              <button
+                className="adm-load-more"
                 onClick={() => setVisibleCount(prev => prev + ITEMS_PER_PAGE)}
               >
                 Mostrar Mais ({filteredGuests.length - visibleCount} restantes)
@@ -204,6 +204,7 @@ const AdminPage: React.FC = () => {
             )}
           </div>
         )}
+
 
         {tab === 'gifts' && (
           <div className="reveal active">
@@ -228,17 +229,17 @@ const AdminPage: React.FC = () => {
         )}
 
         {tab === 'pix' && (
-           <div className="reveal active">
-              <div className="adm-stat-card" style={{ maxWidth: '440px', margin: '0 auto', textAlign: 'left' }}>
-                <span className="adm-stat-label">Configuração Pix</span>
-                <div style={{ marginTop: '1.5rem', display: 'grid', gap: '1.2rem' }}>
-                   <div className="adm-form-field"><label>Tipo de Chave</label><select className="adm-login-input" value={pixData.type} onChange={(e) => setPixData({...pixData, type: e.target.value})}><option value="email">E-mail</option><option value="cpf">CPF</option><option value="cnpj">CNPJ</option><option value="cell">Celular</option><option value="random">Chave Aleatória</option></select></div>
-                   <div className="adm-form-field"><label>Chave Pix</label><input className="adm-login-input" value={pixData.key} onChange={(e) => setPixData({...pixData, key: maskPixKey(e.target.value, pixData.type)})} /></div>
-                   <div className="adm-form-field"><label>Titular</label><input className="adm-login-input" value={pixData.holder} onChange={(e) => setPixData({...pixData, holder: e.target.value})} /></div>
-                   <button className="adm-btn-submit" style={{ width: '100%', justifyContent: 'center' }} onClick={async () => { await api.updatePixData(unmaskValue(pixData.key), pixData.type, pixData.holder); showInfo('Sucesso', 'Dados do Pix salvos com segurança!'); }}>Salvar Pix</button>
-                </div>
+          <div className="reveal active">
+            <div className="adm-stat-card" style={{ maxWidth: '440px', margin: '0 auto', textAlign: 'left' }}>
+              <span className="adm-stat-label">Configuração Pix</span>
+              <div style={{ marginTop: '1.5rem', display: 'grid', gap: '1.2rem' }}>
+                <div className="adm-form-field"><label>Tipo de Chave</label><select className="adm-login-input" value={pixData.type} onChange={(e) => setPixData({ ...pixData, type: e.target.value })}><option value="email">E-mail</option><option value="cpf">CPF</option><option value="cnpj">CNPJ</option><option value="cell">Celular</option><option value="random">Chave Aleatória</option></select></div>
+                <div className="adm-form-field"><label>Chave Pix</label><input className="adm-login-input" value={pixData.key} onChange={(e) => setPixData({ ...pixData, key: maskPixKey(e.target.value, pixData.type) })} /></div>
+                <div className="adm-form-field"><label>Titular</label><input className="adm-login-input" value={pixData.holder} onChange={(e) => setPixData({ ...pixData, holder: e.target.value })} /></div>
+                <button className="adm-btn-submit" style={{ width: '100%', justifyContent: 'center' }} onClick={async () => { await api.updatePixData(unmaskValue(pixData.key), pixData.type, pixData.holder); showInfo('Sucesso', 'Dados do Pix salvos com segurança!'); }}>Salvar Pix</button>
               </div>
-           </div>
+            </div>
+          </div>
         )}
       </main>
 
@@ -248,20 +249,20 @@ const AdminPage: React.FC = () => {
           <div className="adm-modal-content" onClick={e => e.stopPropagation()}>
             <div className="adm-modal-header"><h3>Novo Presente</h3><button className="adm-close-btn" onClick={() => setIsGiftModalOpen(false)}><X size={20} /></button></div>
             <div className="adm-modal-body">
-               <form onSubmit={async (e) => {
-                 e.preventDefault();
-                 await api.addGift({ title: giftTitle, subtitle: '', brand: '', category: 'Geral', price: parseFloat(giftPrice) || 0, imageUrl: giftImageUrl, buyUrl: '', isFeatured });
-                 setIsGiftModalOpen(false); loadAll(); showInfo('Feito!', 'Presente adicionado com sucesso.');
-               }} style={{ display: 'grid', gap: '1.2rem' }}>
-                  <div className="adm-form-field"><label>Título</label><input className="adm-login-input" value={giftTitle} onChange={e => setGiftTitle(e.target.value)} required /></div>
-                  <div className="adm-form-field"><label>Preço</label><input className="adm-login-input" value={giftPrice} onChange={e => setGiftPrice(e.target.value)} required /></div>
-                  <div className="adm-form-field"><label>URL Imagem</label><input className="adm-login-input" value={giftImageUrl} onChange={e => setGiftImageUrl(e.target.value)} required /></div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.5rem' }}>
-                    <input type="checkbox" checked={isFeatured} onChange={e => setIsFeatured(e.target.checked)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
-                    <label style={{ fontSize: '0.9rem', color: 'var(--adm-text-sub)', cursor: 'pointer' }}>Sugestão dos Noivos (Destaque)</label>
-                  </div>
-                  <button type="submit" className="adm-btn-submit" style={{ width: '100%', justifyContent: 'center' }}>Adicionar</button>
-               </form>
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                await api.addGift({ title: giftTitle, subtitle: '', brand: '', category: 'Geral', price: parseFloat(giftPrice) || 0, imageUrl: giftImageUrl, buyUrl: '', isFeatured });
+                setIsGiftModalOpen(false); loadAll(); showInfo('Feito!', 'Presente adicionado com sucesso.');
+              }} style={{ display: 'grid', gap: '1.2rem' }}>
+                <div className="adm-form-field"><label>Título</label><input className="adm-login-input" value={giftTitle} onChange={e => setGiftTitle(e.target.value)} required /></div>
+                <div className="adm-form-field"><label>Preço</label><input className="adm-login-input" value={giftPrice} onChange={e => setGiftPrice(e.target.value)} required /></div>
+                <div className="adm-form-field"><label>URL Imagem</label><input className="adm-login-input" value={giftImageUrl} onChange={e => setGiftImageUrl(e.target.value)} required /></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.5rem' }}>
+                  <input type="checkbox" checked={isFeatured} onChange={e => setIsFeatured(e.target.checked)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                  <label style={{ fontSize: '0.9rem', color: 'var(--adm-text-sub)', cursor: 'pointer' }}>Sugestão dos Noivos (Destaque)</label>
+                </div>
+                <button type="submit" className="adm-btn-submit" style={{ width: '100%', justifyContent: 'center' }}>Adicionar</button>
+              </form>
             </div>
           </div>
         </div>
