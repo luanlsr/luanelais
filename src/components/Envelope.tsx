@@ -98,13 +98,16 @@ const Envelope: React.FC = () => {
 
   const handleCoverClick = () => {
     if (coverStatus === 'closed') {
+      // Tenta iniciar a música imediatamente após o clique (obrigatório para iOS/Safari)
+      if (audioRef.current) {
+        audioRef.current.play()
+          .then(() => setIsPlaying(true))
+          .catch((err) => console.log("Erro ao tocar áudio:", err));
+      }
+
       setCoverStatus('opening');
       setTimeout(() => {
         setCoverStatus('open');
-        // Tenta iniciar a música quando o usuário interage para abrir o envelope
-        if (audioRef.current) {
-          audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
-        }
       }, 1000);
     }
   };
@@ -500,8 +503,8 @@ const Envelope: React.FC = () => {
       </AnimatePresence>
 
       {/* ── AUDIO SYSTEM (DISCREET) ── */}
-      <audio ref={audioRef} loop>
-        <source src="/musicas/Until I Found You (Em Beihold Version) - Stephen Sanchez (youtube).mp3" type="audio/mpeg" />
+      <audio ref={audioRef} loop preload="auto">
+        <source src="/musicas/musica.mp3" type="audio/mpeg" />
       </audio>
 
       {coverStatus === 'open' && (
