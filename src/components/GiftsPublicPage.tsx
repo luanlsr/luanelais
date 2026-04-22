@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Gift, ArrowLeft, Heart, ShoppingBag, Search, SlidersHorizontal, X, Star, Check } from 'lucide-react';
+import { Gift, ArrowLeft, Heart, ShoppingBag, Search, SlidersHorizontal, X, Star, Check, MapPin, Copy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api, type Gift as GiftType } from '../services/api';
 import './GiftsPublicPage.css';
@@ -20,6 +20,9 @@ const GiftsPublicPage: React.FC = () => {
   const [buyingGift, setBuyingGift] = useState<GiftType | null>(null);
   const [guestName, setGuestName] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [addressCopied, setAddressCopied] = useState(false);
+
+  const DELIVERY_ADDRESS = `Luan & Laís - Rua das Oliveiras, 711 — Apto 22 - Bairro Jardim dos Noivos, São Paulo — SP - CEP: 01234-567`;
 
   // Lógica de Filtragem e Ordenação (Movido para cima para ser usado no observer)
   const filteredGifts = useMemo(() => {
@@ -104,6 +107,12 @@ const GiftsPublicPage: React.FC = () => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleCopyAddress = () => {
+    navigator.clipboard.writeText(DELIVERY_ADDRESS);
+    setAddressCopied(true);
+    setTimeout(() => setAddressCopied(false), 2000);
   };
 
   const Sidebar = () => (
@@ -208,8 +217,8 @@ const GiftsPublicPage: React.FC = () => {
                       {g.imageUrl ? <img src={g.imageUrl} alt={g.title} loading="lazy" /> : <Gift size={48} strokeWidth={0.5} opacity={0.2} />}
                     </div>
                     <div className="gp-card-body">
-                      {g.brand && <span className="gp-card-brand">{g.brand}</span>}
                       <h3>{g.title}</h3>
+                      {g.brand && <span className="gp-card-brand">{g.brand}</span>}
                       {g.subtitle && <p className="gp-card-subtitle">{g.subtitle}</p>}
                       <div className="gp-price-wrap">
                         <span className="gp-price-label">Valor Sugerido</span>
@@ -236,29 +245,76 @@ const GiftsPublicPage: React.FC = () => {
 
       <AnimatePresence>
         {buyingGift && (
-          <motion.div 
-            className="gp-mobile-modal" 
+          <motion.div
+            className="gp-mobile-modal"
             style={{ zIndex: 10000 }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setBuyingGift(null)}
           >
-            <motion.div 
-              className="gp-mobile-drawer" 
+            <motion.div
+              className="gp-mobile-drawer"
               style={{ padding: '2rem' }}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={e => e.stopPropagation()}
             >
-              <div className="gp-drawer-header" style={{ padding: '0 0 1.5rem 0' }}>
+              <div className="gp-drawer-header" style={{ padding: '0 0 1rem 0' }}>
                 <h2>Confirmar Presente</h2>
                 <button onClick={() => setBuyingGift(null)}><X size={24} /></button>
               </div>
-              <p style={{ fontSize: '0.9rem', color: 'var(--mk-text-sub)', marginBottom: '1.5rem' }}>
-                Para que possamos saber quem nos presenteou com o <strong>{buyingGift.title}</strong>, por favor informe seu nome:
+
+              <div className="gp-checkout-address" style={{
+                background: '#fdfaf4',
+                border: '1px dashed var(--mk-accent)',
+                padding: '1.5rem',
+                borderRadius: '12px',
+                marginBottom: '1.5rem',
+                display: 'flex',
+                gap: '1rem',
+                alignItems: 'flex-start'
+              }}>
+                <MapPin size={24} color="var(--mk-accent)" style={{ flexShrink: 0, marginTop: '4px' }} />
+                <div>
+                  <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: 'var(--mk-accent)', textTransform: 'uppercase', letterSpacing: '1px' }}>Endereço para Entrega</h4>
+                  <p style={{ margin: 0, fontSize: '0.85rem', lineHeight: '1.5', color: '#444' }}>
+                    <strong>Luan & Laís</strong><br />
+                    Rua das Oliveiras, 711 — Apto 22<br />
+                    Bairro Jardim dos Noivos, São Paulo — SP<br />
+                    CEP: 01234-567
+                  </p>
+                  <button 
+                    onClick={handleCopyAddress} 
+                    type="button"
+                    style={{ 
+                      marginTop: '1.2rem',
+                      width: '100%',
+                      background: 'white', 
+                      border: '1px solid var(--mk-accent)', 
+                      color: 'var(--mk-accent)', 
+                      cursor: 'pointer', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      gap: '8px',
+                      fontSize: '0.8rem', 
+                      fontWeight: 700, 
+                      padding: '0.6rem',
+                      borderRadius: '8px',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <Copy size={14} /> {addressCopied ? 'Endereço Copiado!' : 'Copiar Endereço Completo'}
+                  </button>
+                </div>
+              </div>
+
+              <p style={{ fontSize: '0.85rem', color: 'var(--mk-text-sub)', marginBottom: '1rem' }}>
+                Para que possamos saber quem nos presenteou, por favor informe seu nome:
               </p>
+
               <form onSubmit={handleBuy}>
                 <input
                   type="text"
@@ -268,9 +324,9 @@ const GiftsPublicPage: React.FC = () => {
                   required
                   value={guestName}
                   onChange={e => setGuestName(e.target.value)}
-                  style={{ width: '100%', padding: '1rem', borderRadius: '12px', border: '1px solid #ddd', marginBottom: '1.5rem' }}
+                  style={{ width: '100%', padding: '1rem', borderRadius: '12px', border: '1px solid #ddd', marginBottom: '1.2rem' }}
                 />
-                <button type="submit" disabled={submitting} className="gp-buy-btn" style={{ width: '100%', margin: 0 }}>
+                <button type="submit" disabled={submitting} className="gp-buy-btn" style={{ width: '100%', margin: 0, height: '54px' }}>
                   {submitting ? 'Processando...' : 'Confirmar e Ver Link do Produto'}
                 </button>
               </form>
@@ -281,14 +337,14 @@ const GiftsPublicPage: React.FC = () => {
 
       <AnimatePresence>
         {showMobileFilters && (
-          <motion.div 
+          <motion.div
             className="gp-mobile-modal"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setShowMobileFilters(false)}
           >
-            <motion.div 
+            <motion.div
               className="gp-mobile-drawer"
               initial={{ y: "100%" }}
               animate={{ y: 0 }}

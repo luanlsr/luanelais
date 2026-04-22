@@ -246,12 +246,14 @@
 
 .gp-card-img {
   width: 100%;
-  aspect-ratio: 1/1;
-  padding: 2.5rem; /* Aumentado o padding da imagem */
+  height: 240px; /* Ajustado para equilíbrio com a nova largura */
+  padding: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #fff;
+  border-bottom: 1px solid #f8f8f6;
+  flex-shrink: 0;
 }
 
 .gp-card-img img {
@@ -268,20 +270,21 @@
   border-top: 1px solid #f8f8f6;
 }
 
-.gp-card-brand {
-  font-size: 0.65rem;
+.gp-card-body h3 {
+  font-size: 0.75rem; /* Estilo 'Brand' mas levemente maior para destaque */
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 2px;
   color: var(--mk-accent);
-  font-weight: 700;
-  margin-bottom: 0.4rem;
+  font-weight: 800;
+  margin-bottom: 0.6rem;
+  display: block;
 }
 
-.gp-card-body h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+.gp-card-brand {
+  font-size: 1rem; /* Estilo 'Title' antigo */
+  font-weight: 500;
   color: #2D3820;
+  margin-bottom: 0.2rem;
   display: -webkit-box;
   -webkit-line-clamp: 1;
   line-clamp: 1;
@@ -529,9 +532,9 @@
   }
 
   .gp-card-img {
-    width: 140px !important;
-    height: 140px !important;
-    padding: 1.2rem !important;
+    width: 170px !important;
+    height: 170px !important;
+    padding: 0.8rem !important;
     aspect-ratio: 1/1 !important;
     border-bottom: none !important;
     border-right: 1px solid #f9f9f9 !important;

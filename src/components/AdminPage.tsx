@@ -22,6 +22,9 @@ const AdminPage: React.FC = () => {
   const [pixData, setPixData] = useState({ key: '', type: 'email', holder: '' });
 
   const [guestSearch, setGuestSearch] = useState('');
+  const [giftSearchTerm, setGiftSearchTerm] = useState('');
+  const [adminCategoryFilter, setAdminCategoryFilter] = useState('Todas');
+  const [showAdminFilters, setShowAdminFilters] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [sentReminders, setSentReminders] = useState<string[]>([]);
@@ -143,6 +146,22 @@ const AdminPage: React.FC = () => {
     );
   }, [confirmations, guestSearch]);
 
+  const filteredGifts = useMemo(() => {
+    let result = gifts;
+    if (giftSearchTerm.trim()) {
+      const q = giftSearchTerm.toLowerCase();
+      result = result.filter(g => 
+        g.title.toLowerCase().includes(q) || 
+        g.subtitle?.toLowerCase().includes(q) ||
+        g.brand?.toLowerCase().includes(q)
+      );
+    }
+    if (adminCategoryFilter !== 'Todas') {
+      result = result.filter(g => g.categoryId === adminCategoryFilter);
+    }
+    return result;
+  }, [gifts, giftSearchTerm, adminCategoryFilter]);
+
   const stats = useMemo(() => {
     const adults = confirmations.length;
     let kids = 0;
@@ -247,12 +266,37 @@ const AdminPage: React.FC = () => {
 
         {tab === 'gifts' && (
           <div className="reveal active">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-              <h3 style={{ margin: 0, fontWeight: 500, fontFamily: 'var(--font-serif)', fontSize: '1.8rem' }}>Presentes ({gifts.length})</h3>
-              <button className="adm-btn-submit" onClick={() => setIsGiftModalOpen(true)}><Plus /> Novo</button>
+            <div className="adm-section-header">
+              <div className="adm-section-title">
+                <h3 style={{ margin: 0, fontWeight: 500, fontFamily: 'var(--font-serif)', fontSize: '1.8rem' }}>Presentes ({filteredGifts.length})</h3>
+                <div className="adm-header-actions">
+                   <button className="adm-filter-toggle" onClick={() => setShowAdminFilters(!showAdminFilters)}><Search size={18} /> Filtrar</button>
+                   <button className="adm-btn-submit" onClick={() => { resetGiftForm(); setIsGiftModalOpen(true); }}><Plus /> <span className="hide-mobile">Novo</span></button>
+                </div>
+              </div>
+              
+              <div className={`adm-filter-bar ${showAdminFilters ? 'show' : ''}`}>
+                <div className="adm-search-wrap">
+                  <Search size={18} />
+                  <input 
+                    className="adm-search-input" 
+                    placeholder="Buscar por nome, marca..." 
+                    value={giftSearchTerm}
+                    onChange={e => setGiftSearchTerm(e.target.value)}
+                  />
+                </div>
+                <select 
+                  className="adm-login-input adm-filter-select" 
+                  value={adminCategoryFilter}
+                  onChange={e => setAdminCategoryFilter(e.target.value)}
+                >
+                  <option value="Todas">Todas Categorias</option>
+                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '2rem' }}>
-              {gifts.map(g => {
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2rem' }}>
+              {filteredGifts.map(g => {
                 const priceParts = formatPrice(g.price);
                 return (
                   <div key={g.id} className={`gp-card ${g.isBought ? 'bought' : ''}`}>
@@ -261,8 +305,8 @@ const AdminPage: React.FC = () => {
                       {g.imageUrl ? <img src={g.imageUrl} alt={g.title} /> : <Gift size={48} strokeWidth={0.5} opacity={0.2} />}
                     </div>
                     <div className="gp-card-body">
-                      {g.brand && <span className="gp-card-brand">{g.brand}</span>}
                       <h3>{g.title}</h3>
+                      {g.brand && <span className="gp-card-brand">{g.brand}</span>}
                       {g.subtitle && <p className="gp-card-subtitle">{g.subtitle}</p>}
                       <div className="gp-price-wrap">
                         <span className="gp-price-label">Valor Sugerido</span>
