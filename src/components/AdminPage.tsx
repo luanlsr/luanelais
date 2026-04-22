@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Users, Gift, Trash2, Plus, Search, CheckCircle2, Star, X, Check, LogOut, CreditCard, MessageCircle, Mail, Phone, Hash, AlertCircle } from 'lucide-react';
 import { api, type Confirmation, type Gift as GiftType, type Category } from '../services/api';
-import { maskPixKey, unmaskValue, maskPhone } from '../utils/pix';
+import { maskPixKey, unmaskValue, maskPhone, maskCurrency, parseCurrency } from '../utils/pix';
 import './AdminPage.css';
 
 const ADMIN_USER = 'luanelais';
@@ -263,7 +263,7 @@ const AdminPage: React.FC = () => {
                   subtitle: giftSubtitle,
                   brand: giftBrand,
                   category: giftCategory,
-                  price: parseFloat(giftPrice) || 0,
+                  price: parseCurrency(giftPrice),
                   imageUrl: giftImageUrl,
                   buyUrl: giftBuyUrl,
                   isFeatured
@@ -296,7 +296,7 @@ const AdminPage: React.FC = () => {
                   </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="adm-form-field"><label>Preço (Sugestão)</label><input className="adm-login-input" type="number" step="0.01" value={giftPrice} onChange={e => setGiftPrice(e.target.value)} required placeholder="0.00" /></div>
+                  <div className="adm-form-field"><label>Preço (Sugestão)</label><input className="adm-login-input" value={giftPrice} onChange={e => setGiftPrice(maskCurrency(e.target.value))} required placeholder="0,00" /></div>
                   <div className="adm-form-field"><label>Link de Compra</label><input className="adm-login-input" value={giftBuyUrl} onChange={e => setGiftBuyUrl(e.target.value)} placeholder="https://..." /></div>
                 </div>
                 <div className="adm-form-field"><label>URL Imagem</label><input className="adm-login-input" value={giftImageUrl} onChange={e => setGiftImageUrl(e.target.value)} required placeholder="https://..." /></div>

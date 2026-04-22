@@ -115,3 +115,18 @@ export function maskPhone(value: string): string {
 export function unmaskValue(value: string): string {
   return value.replace(/[^\w\s@.]/g, '').replace(/\s/g, '');
 }
+
+export function maskCurrency(value: string): string {
+  const cleanValue = value.replace(/\D/g, '');
+  if (!cleanValue) return '';
+  const amount = (Number(cleanValue) / 100).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+  return amount;
+}
+
+export function parseCurrency(value: string): number {
+  const cleanValue = value.replace(/\./g, '').replace(',', '.');
+  return Number(cleanValue) || 0;
+}
