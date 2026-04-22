@@ -117,6 +117,16 @@
   border-radius: 8px;
   font-size: 0.8rem;
   background: white;
+  cursor: pointer;
+}
+
+.gp-mobile-filter-btn {
+  display: none;
+}
+
+.gp-mobile-actions-row {
+  display: flex;
+  gap: 0.8rem;
 }
 
 /* Layout Principal */
@@ -477,4 +487,59 @@
     font-size: 0.5rem;
     padding: 0.2rem 0.5rem;
   }
+
+  /* Filtros Mobile */
+  .gp-mobile-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    display: flex;
+    align-items: flex-end;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .gp-mobile-drawer {
+    width: 100%;
+    background: white;
+    border-radius: 24px 24px 0 0;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .gp-drawer-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--mk-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .gp-drawer-header h2 {
+    font-size: 1.2rem;
+    font-family: var(--font-serif);
+    margin: 0;
+  }
+
+  .gp-drawer-header button {
+    background: none;
+    border: none;
+    color: var(--mk-text-sub);
+  }
+
+  .gp-drawer-content {
+    padding: 1.5rem;
+    overflow-y: auto;
+  }
+
+  .gp-drawer-content .gp-sidebar {
+    display: block !important;
+    width: 100%;
+    margin: 0;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 }
