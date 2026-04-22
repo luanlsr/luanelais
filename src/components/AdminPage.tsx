@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Users, Gift, Trash2, Plus, Search, CheckCircle2, Star, X, Check, LogOut, CreditCard, MessageCircle, Mail, Phone, Hash, AlertCircle } from 'lucide-react';
+import { Users, Gift, Trash2, Plus, Search, CheckCircle2, Star, X, Check, LogOut, CreditCard, MessageCircle, Mail, Phone, Hash, AlertCircle, Pencil } from 'lucide-react';
 import { api, type Confirmation, type Gift as GiftType, type Category } from '../services/api';
 import { maskPixKey, unmaskValue, maskPhone, maskCurrency, parseCurrency } from '../utils/pix';
 import './AdminPage.css';
@@ -65,6 +65,22 @@ const AdminPage: React.FC = () => {
     setGiftImageUrl('');
     setGiftBuyUrl('');
     setIsFeatured(false);
+  };
+
+  /* ── GUEST MODAL ── */
+  const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
+  const [editingGuestId, setEditingGuestId] = useState<string | null>(null);
+  const [guestFullName, setGuestFullName] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestChildren, setGuestChildren] = useState<{ name: string; age: string }[]>([]);
+
+  const resetGuestForm = () => {
+    setEditingGuestId(null);
+    setGuestFullName('');
+    setGuestPhone('');
+    setGuestEmail('');
+    setGuestChildren([]);
   };
 
   useEffect(() => {
@@ -134,6 +150,15 @@ const AdminPage: React.FC = () => {
     setGiftBuyUrl(g.buyUrl || '');
     setIsFeatured(g.isFeatured || false);
     setIsGiftModalOpen(true);
+  };
+
+  const handleEditGuest = (c: Confirmation) => {
+    setEditingGuestId(c.id);
+    setGuestFullName(c.fullName);
+    setGuestPhone(c.phone);
+    setGuestEmail(c.email || '');
+    setGuestChildren(c.children || []);
+    setIsGuestModalOpen(true);
   };
 
   const filteredGuests = useMemo(() => {
@@ -233,7 +258,17 @@ const AdminPage: React.FC = () => {
                         <button className="adm-btn-icon wa" style={{ background: isSent ? '#f0f0f0' : '#25D366' }} onClick={() => openWhatsAppRemind(c.id, c.phone, c.fullName)}>
                           <MessageCircle size={20} fill={isSent ? '#ccc' : 'white'} />
                         </button>
-                        <button className="adm-btn-icon trash" onClick={() => showConfirm('Excluir Convidado', `Deseja realmente remover ${c.fullName}?`, () => { api.removeConfirmation(c.id).then(() => { loadAll(); closeDialog(); }); })}><Trash2 size={20} /></button>
+                        <button className="adm-btn-icon" style={{ background: '#f5f5f4', color: '#2D3820' }} onClick={() => handleEditGuest(c)}>
+                          <Pencil size={18} />
+                        </button>
+                        <button className="adm-btn-icon trash" onClick={() => showConfirm('Excluir Convidado', `Deseja realmente remover ${c.fullName}?`, () => { 
+                          api.removeConfirmation(c.id)
+                            .then(() => { loadAll(); closeDialog(); })
+                            .catch(err => { 
+                              console.error(err);
+                              showInfo('Erro ao remover', 'Não foi possível excluir o convidado. Verifique as permissões do banco de dados.');
+                            });
+                        })}><Trash2 size={20} /></button>
                       </div>
                     </div>
                     {isExpanded && (
@@ -330,7 +365,14 @@ const AdminPage: React.FC = () => {
                       <button 
                         className="adm-btn-logout" 
                         style={{ width: '100%', justifyContent: 'center', background: '#fee2e2', color: '#991b1b', border: 'none' }} 
-                        onClick={() => showConfirm('Remover Presente', 'Deseja excluir este item da vitrine?', () => { api.removeGift(g.id).then(() => { loadAll(); closeDialog(); }); })}
+                        onClick={() => showConfirm('Remover Presente', 'Deseja excluir este item da vitrine?', () => { 
+                          api.removeGift(g.id)
+                            .then(() => { loadAll(); closeDialog(); })
+                            .catch(err => {
+                              console.error(err);
+                              showInfo('Erro ao remover', 'Não foi possível excluir o presente.');
+                            });
+                        })}
                       >
                         <Trash2 size={16} /> Remover
                       </button>
@@ -414,6 +456,72 @@ const AdminPage: React.FC = () => {
                   <label style={{ fontSize: '0.9rem', color: 'var(--adm-text-sub)', cursor: 'pointer' }}>Sugestão dos Noivos (Destaque)</label>
                 </div>
                 <button type="submit" className="adm-btn-submit" style={{ width: '100%', justifyContent: 'center' }}>Adicionar Presente</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isGuestModalOpen && (
+        <div className="adm-modal-overlay" onClick={() => setIsGuestModalOpen(false)}>
+          <div className="adm-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="adm-modal-header">
+              <h3>Editar Convidado</h3>
+              <button className="adm-close-btn" onClick={() => setIsGuestModalOpen(false)}><X size={20} /></button>
+            </div>
+            <div className="adm-modal-body">
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                if (!editingGuestId) return;
+
+                const payload = {
+                  fullName: guestFullName,
+                  phone: guestPhone,
+                  email: guestEmail,
+                  children: guestChildren
+                };
+
+                try {
+                  await api.updateConfirmation(editingGuestId, payload);
+                  setIsGuestModalOpen(false);
+                  resetGuestForm();
+                  loadAll();
+                  showInfo('Sucesso', 'Convidado atualizado com sucesso.');
+                } catch (err) {
+                  showInfo('Erro', 'Não foi possível salvar as alterações.');
+                }
+              }} style={{ display: 'grid', gap: '1.2rem' }}>
+                <div className="adm-form-field"><label>Nome Completo</label><input className="adm-login-input" value={guestFullName} onChange={e => setGuestFullName(e.target.value)} required /></div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="adm-form-field"><label>Telefone</label><input className="adm-login-input" value={guestPhone} onChange={e => setGuestPhone(maskPhone(e.target.value))} required /></div>
+                  <div className="adm-form-field"><label>E-mail (Opcional)</label><input className="adm-login-input" type="email" value={guestEmail} onChange={e => setGuestEmail(e.target.value)} /></div>
+                </div>
+
+                <div className="adm-form-field">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
+                    <label>Dependentes</label>
+                    <button type="button" className="adm-btn-submit" style={{ padding: '0.4rem 0.8rem', fontSize: '0.7rem' }} onClick={() => setGuestChildren([...guestChildren, { name: '', age: '' }])}>+ Adicionar</button>
+                  </div>
+                  <div style={{ display: 'grid', gap: '0.8rem' }}>
+                    {guestChildren.map((child, idx) => (
+                      <div key={idx} style={{ display: 'flex', gap: '0.5rem' }}>
+                        <input className="adm-login-input" style={{ flex: 1 }} placeholder="Nome" value={child.name} onChange={e => {
+                          const newC = [...guestChildren];
+                          newC[idx].name = e.target.value;
+                          setGuestChildren(newC);
+                        }} required />
+                        <input className="adm-login-input" style={{ width: '60px' }} placeholder="Idade" value={child.age} onChange={e => {
+                          const newC = [...guestChildren];
+                          newC[idx].age = e.target.value;
+                          setGuestChildren(newC);
+                        }} required />
+                        <button type="button" className="adm-btn-icon trash" style={{ padding: '0.5rem' }} onClick={() => setGuestChildren(guestChildren.filter((_, i) => i !== idx))}><X size={14} /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <button type="submit" className="adm-btn-submit" style={{ width: '100%', justifyContent: 'center', marginTop: '1rem' }}>Salvar Alterações</button>
               </form>
             </div>
           </div>

@@ -89,6 +89,21 @@ class WeddingAPI {
     if (error) throw error;
   }
 
+  async updateConfirmation(id: string, data: Partial<Omit<Confirmation, 'id' | 'createdAt'>>): Promise<void> {
+    const { error } = await supabase
+      .from('confirmacoes')
+      .update({
+        full_name: data.fullName,
+        phone: data.phone,
+        email: data.email,
+        children: data.children
+      })
+      .eq('id', id)
+      .eq('wedding_id', WEDDING_ID);
+
+    if (error) throw error;
+  }
+
   async getAdminStats() {
     const { data, error } = await supabase
       .from('confirmacoes')
