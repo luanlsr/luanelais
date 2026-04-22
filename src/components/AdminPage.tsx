@@ -50,6 +50,19 @@ const AdminPage: React.FC = () => {
   const [giftImageUrl, setGiftImageUrl] = useState('');
   const [giftBuyUrl, setGiftBuyUrl] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
+  const [editingGiftId, setEditingGiftId] = useState<string | null>(null);
+
+  const resetGiftForm = () => {
+    setEditingGiftId(null);
+    setGiftTitle('');
+    setGiftSubtitle('');
+    setGiftBrand('');
+    setGiftCategory('');
+    setGiftPrice('');
+    setGiftImageUrl('');
+    setGiftBuyUrl('');
+    setIsFeatured(false);
+  };
 
   useEffect(() => {
     if (authed) loadAll();
@@ -105,6 +118,19 @@ const AdminPage: React.FC = () => {
     if (!sentReminders.includes(id)) {
       setSentReminders(prev => [...prev, id]);
     }
+  };
+
+  const handleEditGift = (g: GiftType) => {
+    setEditingGiftId(g.id);
+    setGiftTitle(g.title);
+    setGiftSubtitle(g.subtitle || '');
+    setGiftBrand(g.brand || '');
+    setGiftCategory(g.categoryId || '');
+    setGiftPrice(maskCurrency((g.price * 100).toString()));
+    setGiftImageUrl(g.imageUrl);
+    setGiftBuyUrl(g.buyUrl || '');
+    setIsFeatured(g.isFeatured || false);
+    setIsGiftModalOpen(true);
   };
 
   const filteredGuests = useMemo(() => {
@@ -251,7 +277,15 @@ const AdminPage: React.FC = () => {
 
                       <button 
                         className="adm-btn-logout" 
-                        style={{ marginTop: 'auto', width: '100%', justifyContent: 'center', background: '#fee2e2', color: '#991b1b', border: 'none' }} 
+                        style={{ marginTop: 'auto', width: '100%', justifyContent: 'center', background: '#f5f5f4', color: '#2D3820', border: 'none', marginBottom: '0.5rem' }} 
+                        onClick={() => handleEditGift(g)}
+                      >
+                        Editar
+                      </button>
+
+                      <button 
+                        className="adm-btn-logout" 
+                        style={{ width: '100%', justifyContent: 'center', background: '#fee2e2', color: '#991b1b', border: 'none' }} 
                         onClick={() => showConfirm('Remover Presente', 'Deseja excluir este item da vitrine?', () => { api.removeGift(g.id).then(() => { loadAll(); closeDialog(); }); })}
                       >
                         <Trash2 size={16} /> Remover
@@ -283,11 +317,14 @@ const AdminPage: React.FC = () => {
       {isGiftModalOpen && (
         <div className="adm-modal-overlay" onClick={() => setIsGiftModalOpen(false)}>
           <div className="adm-modal-content" onClick={e => e.stopPropagation()}>
-            <div className="adm-modal-header"><h3>Novo Presente</h3><button className="adm-close-btn" onClick={() => setIsGiftModalOpen(false)}><X size={20} /></button></div>
+            <div className="adm-modal-header">
+              <h3>{editingGiftId ? 'Editar Presente' : 'Novo Presente'}</h3>
+              <button className="adm-close-btn" onClick={() => setIsGiftModalOpen(false)}><X size={20} /></button>
+            </div>
             <div className="adm-modal-body">
               <form onSubmit={async (e) => {
                 e.preventDefault();
-                await api.addGift({
+                const payload = {
                   title: giftTitle,
                   subtitle: giftSubtitle,
                   brand: giftBrand,
@@ -296,19 +333,18 @@ const AdminPage: React.FC = () => {
                   imageUrl: giftImageUrl,
                   buyUrl: giftBuyUrl,
                   isFeatured
-                });
+                };
+
+                if (editingGiftId) {
+                  await api.updateGift(editingGiftId, payload);
+                } else {
+                  await api.addGift(payload);
+                }
+
                 setIsGiftModalOpen(false);
-                // Limpar campos
-                setGiftTitle('');
-                setGiftSubtitle('');
-                setGiftBrand('');
-                setGiftCategory('');
-                setGiftPrice('');
-                setGiftImageUrl('');
-                setGiftBuyUrl('');
-                setIsFeatured(false);
+                resetGiftForm();
                 loadAll();
-                showInfo('Feito!', 'Presente adicionado com sucesso.');
+                showInfo('Feito!', editingGiftId ? 'Presente atualizado com sucesso.' : 'Presente adicionado com sucesso.');
               }} style={{ display: 'grid', gap: '1.2rem' }}>
                 <div className="adm-form-field"><label>Título</label><input className="adm-login-input" value={giftTitle} onChange={e => setGiftTitle(e.target.value)} required placeholder="Ex: Air Fryer" /></div>
                 <div className="adm-form-field"><label>Subtítulo (Opcional)</label><input className="adm-login-input" value={giftSubtitle} onChange={e => setGiftSubtitle(e.target.value)} placeholder="Ex: Forno 5 em 1 12L" /></div>

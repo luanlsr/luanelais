@@ -34,6 +34,7 @@ export interface Gift {
   subtitle?: string;
   brand?: string;
   category: string;
+  categoryId?: string;
   imageUrl: string;
   price: number;
   buyUrl: string;
@@ -130,6 +131,7 @@ class WeddingAPI {
       subtitle: g.subtitle,
       brand: g.brand,
       category: (g.categorias_presentes as any)?.name || 'Geral',
+      categoryId: g.category, // ID original da FK no banco
       imageUrl: g.image_url,
       price: Number(g.price),
       buyUrl: g.buy_url,
