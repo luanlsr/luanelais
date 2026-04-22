@@ -4,7 +4,7 @@ import { MapPin, Users, Gift, CheckCircle2, Navigation, Copy, ArrowRight, Trash2
 import confetti from 'canvas-confetti';
 import { api } from '../services/api';
 import { generatePixPayload, maskPhone } from '../utils/pix';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import GiftsModal from './GiftsModal';
 import './Envelope.css';
 
