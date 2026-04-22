@@ -1,9 +1,9 @@
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Gift, ArrowLeft, Heart, ShoppingBag, Search, SlidersHorizontal, X, Star, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api, type Gift as GiftType } from '../services/api';
 import './GiftsPublicPage.css';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const ITEMS_PER_PAGE = 12;
 

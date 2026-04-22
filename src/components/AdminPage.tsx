@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { LogOut, Users, Gift, Trash2, Plus, Search, CheckCircle2, CreditCard, Star, X, MessageCircle, Mail, Phone, Hash, Check, AlertCircle } from 'lucide-react';
-import { api, type Confirmation, type Gift as GiftType } from '../services/api';
+import { Users, Gift, Trash2, Plus, Search, CheckCircle2, Star, X, Check, LogOut, CreditCard, MessageCircle, Mail, Phone, Hash, AlertCircle } from 'lucide-react';
+import { api, type Confirmation, type Gift as GiftType, type Category } from '../services/api';
 import { maskPixKey, unmaskValue, maskPhone } from '../utils/pix';
 import './AdminPage.css';
 
@@ -18,6 +18,7 @@ const AdminPage: React.FC = () => {
 
   const [confirmations, setConfirmations] = useState<Confirmation[]>([]);
   const [gifts, setGifts] = useState<GiftType[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [pixData, setPixData] = useState({ key: '', type: 'email', holder: '' });
 
   const [guestSearch, setGuestSearch] = useState('');
@@ -44,7 +45,7 @@ const AdminPage: React.FC = () => {
   const [giftTitle, setGiftTitle] = useState('');
   const [giftSubtitle, setGiftSubtitle] = useState('');
   const [giftBrand, setGiftBrand] = useState('');
-  const [giftCategory, setGiftCategory] = useState('Outros');
+  const [giftCategory, setGiftCategory] = useState('');
   const [giftPrice, setGiftPrice] = useState('');
   const [giftImageUrl, setGiftImageUrl] = useState('');
   const [giftBuyUrl, setGiftBuyUrl] = useState('');
@@ -56,14 +57,16 @@ const AdminPage: React.FC = () => {
 
   const loadAll = async () => {
     try {
-      const [conf, gf, px] = await Promise.all([
+      const [conf, gf, px, cats] = await Promise.all([
         api.getConfirmations(),
         api.getGifts(),
-        api.getPixData()
+        api.getPixData(),
+        api.getCategories()
       ]);
       setConfirmations(conf);
       setGifts(gf);
       setPixData({ ...px, key: maskPixKey(px.key, px.type) });
+      setCategories(cats);
     } catch (err) {
       showInfo('Erro', 'Não foi possível carregar os dados.');
     }
@@ -255,34 +258,42 @@ const AdminPage: React.FC = () => {
             <div className="adm-modal-body">
               <form onSubmit={async (e) => {
                 e.preventDefault();
-                await api.addGift({ 
-                  title: giftTitle, 
-                  subtitle: giftSubtitle, 
-                  brand: giftBrand, 
-                  category: giftCategory, 
-                  price: parseFloat(giftPrice) || 0, 
-                  imageUrl: giftImageUrl, 
-                  buyUrl: giftBuyUrl, 
-                  isFeatured 
+                await api.addGift({
+                  title: giftTitle,
+                  subtitle: giftSubtitle,
+                  brand: giftBrand,
+                  category: giftCategory,
+                  price: parseFloat(giftPrice) || 0,
+                  imageUrl: giftImageUrl,
+                  buyUrl: giftBuyUrl,
+                  isFeatured
                 });
-                setIsGiftModalOpen(false); 
+                setIsGiftModalOpen(false);
                 // Limpar campos
                 setGiftTitle('');
                 setGiftSubtitle('');
                 setGiftBrand('');
-                setGiftCategory('Outros');
+                setGiftCategory('');
                 setGiftPrice('');
                 setGiftImageUrl('');
                 setGiftBuyUrl('');
                 setIsFeatured(false);
-                loadAll(); 
+                loadAll();
                 showInfo('Feito!', 'Presente adicionado com sucesso.');
               }} style={{ display: 'grid', gap: '1.2rem' }}>
                 <div className="adm-form-field"><label>Título</label><input className="adm-login-input" value={giftTitle} onChange={e => setGiftTitle(e.target.value)} required placeholder="Ex: Air Fryer" /></div>
                 <div className="adm-form-field"><label>Subtítulo (Opcional)</label><input className="adm-login-input" value={giftSubtitle} onChange={e => setGiftSubtitle(e.target.value)} placeholder="Ex: Forno 5 em 1 12L" /></div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="adm-form-field"><label>Marca</label><input className="adm-login-input" value={giftBrand} onChange={e => setGiftBrand(e.target.value)} placeholder="Ex: Electrolux" /></div>
-                  <div className="adm-form-field"><label>Categoria</label><input className="adm-login-input" value={giftCategory} onChange={e => setGiftCategory(e.target.value)} placeholder="Ex: Cozinha" /></div>
+                  <div className="adm-form-field">
+                    <label>Categoria</label>
+                    <select className="adm-login-input" value={giftCategory} onChange={e => setGiftCategory(e.target.value)} required>
+                      <option value="">Selecione uma categoria...</option>
+                      {categories.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="adm-form-field"><label>Preço (Sugestão)</label><input className="adm-login-input" type="number" step="0.01" value={giftPrice} onChange={e => setGiftPrice(e.target.value)} required placeholder="0.00" /></div>

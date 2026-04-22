@@ -13,6 +13,11 @@ export interface Child {
   age: string;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+}
+
 export interface Confirmation {
   id: string;
   fullName: string;
@@ -111,19 +116,20 @@ class WeddingAPI {
   async getGifts(): Promise<Gift[]> {
     const { data, error } = await supabase
       .from('lista_presentes')
-      .select('*')
+      .select('*, categorias_presentes(name)')
       .eq('wedding_id', WEDDING_ID)
-      .order('is_featured', { ascending: false })
-      .order('created_at', { ascending: false });
-
-    if (error || !data) return [];
+    if (error) {
+      console.error('Erro ao buscar presentes:', error);
+      return [];
+    }
+    if (!data) return [];
 
     return data.map(g => ({
       id: g.id,
       title: g.title,
       subtitle: g.subtitle,
       brand: g.brand,
-      category: g.category || 'Outros',
+      category: (g.categorias_presentes as any)?.name || 'Geral',
       imageUrl: g.image_url,
       price: Number(g.price),
       buyUrl: g.buy_url,
@@ -208,6 +214,20 @@ class WeddingAPI {
 
     if (error) throw error;
   }
+  async getCategories(): Promise<Category[]> {
+    const { data, error } = await supabase
+      .from('categorias_presentes')
+      .select('id, name')
+      .eq('wedding_id', WEDDING_ID)
+      .order('name', { ascending: true });
+
+    if (error) {
+      console.error('Erro ao buscar categorias:', error);
+      return [];
+    }
+    if (!data) return [];
+    return data;
+  }
 
   /* ─────────── PIX ─────────── */
 
@@ -219,7 +239,11 @@ class WeddingAPI {
       .limit(1)
       .single();
 
-    if (error || !data) return { key: '21966785809', type: 'email', holder: '' };
+    if (error) {
+      console.error('Erro ao buscar Pix:', error);
+      return { key: '21966785809', type: 'email', holder: '' };
+    }
+    if (!data) return { key: '21966785809', type: 'email', holder: '' };
 
     return {
       key: data.key_value,
