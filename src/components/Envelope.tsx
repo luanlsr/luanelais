@@ -485,6 +485,16 @@ const Envelope: React.FC = () => {
                 </div>
               </div>
             </motion.div>
+
+            {/* Selo movido para fora para evitar clipping e ficar por cima de tudo */}
+            <motion.div 
+              className="env-seal-wrap"
+              initial={{ x: '-50%', y: '-50%', opacity: 1 }}
+              animate={coverStatus === 'opening' ? { x: '-50%', y: '-100vh', opacity: 0 } : { x: '-50%', y: '-50%', opacity: 1 }}
+              transition={panelTransition}
+            >
+              <img src="/images/selo.png" alt="Lacre" className="env-seal-img" />
+            </motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -494,15 +504,17 @@ const Envelope: React.FC = () => {
         <source src="/musicas/Until I Found You (Em Beihold Version) - Stephen Sanchez (youtube).mp3" type="audio/mpeg" />
       </audio>
 
-      <motion.button 
-        className="inv-audio-control"
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        onClick={toggleAudio}
-        title="Gerenciar Música"
-      >
-        {isPlaying ? <Volume2 size={20} /> : <VolumeX size={20} />}
-      </motion.button>
+      {coverStatus === 'open' && (
+        <motion.button 
+          className="inv-audio-control"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          onClick={toggleAudio}
+          title="Gerenciar Música"
+        >
+          {isPlaying ? <Volume2 size={20} /> : <VolumeX size={20} />}
+        </motion.button>
+      )}
     </div>
   );
 };

@@ -41,6 +41,20 @@
   filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.6));
 }
 
+.env-seal-wrap {
+  position: absolute;
+  top: 64%;
+  left: 50%;
+  z-index: 150;
+  pointer-events: none;
+}
+
+.env-seal-img {
+  width: 140px;
+  height: auto;
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+}
+
 .env-top-content {
   position: relative;
   z-index: 2;
@@ -1139,6 +1153,10 @@
   .hero-cta {
     width: 100%;
     text-align: center;
+  }
+
+  .env-seal-img {
+    width: 110px;
   }
 
   .inv-nav-content {
