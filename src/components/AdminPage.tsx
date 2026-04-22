@@ -252,7 +252,14 @@ const AdminPage: React.FC = () => {
               <form onSubmit={async (e) => {
                 e.preventDefault();
                 await api.addGift({ title: giftTitle, subtitle: '', brand: '', category: 'Geral', price: parseFloat(giftPrice) || 0, imageUrl: giftImageUrl, buyUrl: '', isFeatured });
-                setIsGiftModalOpen(false); loadAll(); showInfo('Feito!', 'Presente adicionado com sucesso.');
+                setIsGiftModalOpen(false); 
+                // Limpar campos
+                setGiftTitle('');
+                setGiftPrice('');
+                setGiftImageUrl('');
+                setIsFeatured(false);
+                loadAll(); 
+                showInfo('Feito!', 'Presente adicionado com sucesso.');
               }} style={{ display: 'grid', gap: '1.2rem' }}>
                 <div className="adm-form-field"><label>Título</label><input className="adm-login-input" value={giftTitle} onChange={e => setGiftTitle(e.target.value)} required /></div>
                 <div className="adm-form-field"><label>Preço</label><input className="adm-login-input" value={giftPrice} onChange={e => setGiftPrice(e.target.value)} required /></div>

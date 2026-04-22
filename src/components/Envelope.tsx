@@ -5,6 +5,7 @@ import confetti from 'canvas-confetti';
 import { api } from '../services/api';
 import { generatePixPayload, maskPhone } from '../utils/pix';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import GiftsModal from './GiftsModal';
 import './Envelope.css';
 
 type CoverStatus = 'closed' | 'opening' | 'open';
@@ -17,6 +18,7 @@ const Envelope: React.FC = () => {
   const [coverStatus, setCoverStatus] = useState<CoverStatus>('closed');
   const [isPlaying, setIsPlaying] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
+  const [isGiftsModalOpen, setIsGiftsModalOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -379,9 +381,9 @@ const Envelope: React.FC = () => {
               <div className="inv-sec-body">
                 <p className="inv-rsvp-intro" style={{ color: '#6a6a60' }}>Se desejar nos presentear:</p>
                 <div className="inv-gift-actions-top" style={{ marginBottom: '2.5rem', width: '100%' }}>
-                  <Link to="/presentes" className="inv-btn-solid-olive">
+                  <button onClick={() => setIsGiftsModalOpen(true)} className="inv-btn-solid-olive" style={{ cursor: 'pointer', border: 'none', width: '100%' }}>
                     Ver Lista de Presentes <ArrowRight size={20} />
-                  </Link>
+                  </button>
                 </div>
 
                 <p className="inv-rsvp-intro" style={{ marginTop: '2rem', color: '#8b8b80', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
@@ -518,6 +520,8 @@ const Envelope: React.FC = () => {
           {isPlaying ? <Volume2 size={20} /> : <VolumeX size={20} />}
         </motion.button>
       )}
+
+      <GiftsModal isOpen={isGiftsModalOpen} onClose={() => setIsGiftsModalOpen(false)} />
     </div>
   );
 };

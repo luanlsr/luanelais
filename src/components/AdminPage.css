@@ -413,3 +413,65 @@
 .adm-btn-icon.wa { background: #25D366; border: none; color: white; }
 .adm-btn-icon.trash { color: #ff4d4f; }
 .adm-btn-icon.trash:hover { background: #fff1f0; }
+
+/* ── MODAL GIFTS ── */
+.adm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(45, 56, 32, 0.4);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2100;
+  padding: 2rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.adm-modal-content {
+  background: white;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 24px;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.2);
+  overflow: hidden;
+  animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.adm-modal-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--adm-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fbfbf8;
+}
+
+.adm-modal-header h3 {
+  font-family: var(--font-serif);
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.adm-modal-body {
+  padding: 2rem;
+}
+
+.adm-close-btn {
+  background: none;
+  border: none;
+  color: var(--adm-text-sub);
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.adm-close-btn:hover {
+  color: var(--adm-text);
+  transform: scale(1.1);
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
