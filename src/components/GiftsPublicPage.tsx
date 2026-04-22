@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Gift, ArrowLeft, Heart, ShoppingBag, Search, SlidersHorizontal, X, Star } from 'lucide-react';
+import { Gift, ArrowLeft, Heart, ShoppingBag, Search, SlidersHorizontal, X, Star, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { api, type Gift as GiftType } from '../services/api';
 import './GiftsPublicPage.css';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -16,14 +17,17 @@ const GiftsPublicPage: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<'latest' | 'low-high' | 'high-low'>('latest');
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  
+  const [buyingGift, setBuyingGift] = useState<GiftType | null>(null);
+  const [guestName, setGuestName] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
   // Lógica de Filtragem e Ordenação (Movido para cima para ser usado no observer)
   const filteredGifts = useMemo(() => {
     let result = [...allGifts];
 
     if (searchTerm) {
-      result = result.filter(g => 
-        g.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      result = result.filter(g =>
+        g.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         g.brand?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -44,7 +48,7 @@ const GiftsPublicPage: React.FC = () => {
 
     if (sortOrder === 'low-high') result.sort((a, b) => a.price - b.price);
     else if (sortOrder === 'high-low') result.sort((a, b) => b.price - a.price);
-    
+
     return result;
   }, [allGifts, searchTerm, categoryFilter, brandFilter, priceFilter, sortOrder]);
 
@@ -52,20 +56,20 @@ const GiftsPublicPage: React.FC = () => {
   const lastElementRef = useCallback((node: HTMLDivElement | null) => {
     if (loading) return;
     if (observer.current) observer.current.disconnect();
-    
+
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && visibleCount < filteredGifts.length) {
         setVisibleCount(prev => prev + ITEMS_PER_PAGE);
       }
     });
-    
+
     if (node) observer.current.observe(node);
   }, [loading, visibleCount, filteredGifts.length]);
 
   useEffect(() => {
-    api.getGifts().then(g => { 
-      setAllGifts(g); 
-      setLoading(false); 
+    api.getGifts().then(g => {
+      setAllGifts(g);
+      setLoading(false);
     });
   }, []);
 
@@ -78,6 +82,28 @@ const GiftsPublicPage: React.FC = () => {
     const formatted = price.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
     const parts = formatted.split(',');
     return { main: parts[0], cents: parts[1] };
+  };
+
+  const handleBuy = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!buyingGift || !guestName.trim()) return;
+
+    setSubmitting(true);
+    try {
+      await api.markGiftAsBought(buyingGift.id, guestName.trim());
+      // Abre o link do presente em nova aba se houver
+      if (buyingGift.buyUrl) {
+        window.open(buyingGift.buyUrl, '_blank');
+      }
+      // Atualiza estado local
+      setAllGifts(prev => prev.map(g => g.id === buyingGift.id ? { ...g, isBought: true, boughtBy: guestName.trim() } : g));
+      setBuyingGift(null);
+      setGuestName('');
+    } catch (err) {
+      alert('Erro ao marcar presente. Tente novamente.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const Sidebar = () => (
@@ -131,9 +157,9 @@ const GiftsPublicPage: React.FC = () => {
           <div className="gp-search-row">
             <div className="gp-search-bar">
               <Search size={18} />
-              <input 
-                type="text" 
-                placeholder="Busque por marca, produto..." 
+              <input
+                type="text"
+                placeholder="Busque por marca, produto..."
                 value={searchTerm}
                 onChange={e => { setSearchTerm(e.target.value); setVisibleCount(ITEMS_PER_PAGE); }}
               />
@@ -168,7 +194,7 @@ const GiftsPublicPage: React.FC = () => {
             <div className="gp-empty">
               <Gift size={40} strokeWidth={1} />
               <p>Nenhum presente encontrado.</p>
-              <button onClick={() => {setSearchTerm(''); setPriceFilter('all'); setCategoryFilter('Todas'); setBrandFilter('Todas');}} className="gp-buy-btn" style={{marginTop: '1rem'}}>Ver Tudo</button>
+              <button onClick={() => { setSearchTerm(''); setPriceFilter('all'); setCategoryFilter('Todas'); setBrandFilter('Todas'); }} className="gp-buy-btn" style={{ marginTop: '1rem' }}>Ver Tudo</button>
             </div>
           ) : (
             <div className="gp-grid">
@@ -176,7 +202,7 @@ const GiftsPublicPage: React.FC = () => {
                 const priceParts = formatPrice(g.price);
                 const isLast = idx === visibleGifts.length - 1;
                 return (
-                  <div key={g.id} className="gp-card" ref={isLast ? lastElementRef : null}>
+                  <div key={g.id} className={`gp-card ${g.isBought ? 'bought' : ''}`} ref={isLast ? lastElementRef : null}>
                     {g.isFeatured && <div className="gp-badge"><Star size={10} fill="white" /> Sugestão dos Noivos</div>}
                     <div className="gp-card-img">
                       {g.imageUrl ? <img src={g.imageUrl} alt={g.title} loading="lazy" /> : <Gift size={48} strokeWidth={0.5} opacity={0.2} />}
@@ -189,9 +215,16 @@ const GiftsPublicPage: React.FC = () => {
                         <span className="gp-price-label">Valor Sugerido</span>
                         <p className="gp-price"><span>R$</span>{priceParts.main}<small>,{priceParts.cents}</small></p>
                       </div>
-                      <a href={g.buyUrl || '#'} target="_blank" rel="noopener noreferrer" className="gp-buy-btn">
-                        <ShoppingBag size={18} /> Presentear
-                      </a>
+
+                      {g.isBought ? (
+                        <div className="gp-bought-tag">
+                          <Check size={14} /> Presenteado por {g.boughtBy}
+                        </div>
+                      ) : (
+                        <button onClick={() => setBuyingGift(g)} className="gp-buy-btn">
+                          <ShoppingBag size={18} /> Presentear
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -201,20 +234,80 @@ const GiftsPublicPage: React.FC = () => {
         </main>
       </div>
 
-      {showMobileFilters && (
-        <div className="gp-mobile-modal" onClick={() => setShowMobileFilters(false)}>
-          <div className="gp-mobile-drawer" onClick={e => e.stopPropagation()}>
-            <div className="gp-drawer-header">
-              <h2>Filtrar Presentes</h2>
-              <button onClick={() => setShowMobileFilters(false)}><X size={24} /></button>
-            </div>
-            <div className="gp-drawer-content">
-              <Sidebar />
-              <button className="gp-buy-btn" style={{width: '100%', marginTop: '2rem'}} onClick={() => setShowMobileFilters(false)}>Aplicar Filtros</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {buyingGift && (
+          <motion.div 
+            className="gp-mobile-modal" 
+            style={{ zIndex: 10000 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setBuyingGift(null)}
+          >
+            <motion.div 
+              className="gp-mobile-drawer" 
+              style={{ padding: '2rem' }}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="gp-drawer-header" style={{ padding: '0 0 1.5rem 0' }}>
+                <h2>Confirmar Presente</h2>
+                <button onClick={() => setBuyingGift(null)}><X size={24} /></button>
+              </div>
+              <p style={{ fontSize: '0.9rem', color: 'var(--mk-text-sub)', marginBottom: '1.5rem' }}>
+                Para que possamos saber quem nos presenteou com o <strong>{buyingGift.title}</strong>, por favor informe seu nome:
+              </p>
+              <form onSubmit={handleBuy}>
+                <input
+                  type="text"
+                  className="gp-input"
+                  placeholder="Seu nome completo"
+                  autoFocus
+                  required
+                  value={guestName}
+                  onChange={e => setGuestName(e.target.value)}
+                  style={{ width: '100%', padding: '1rem', borderRadius: '12px', border: '1px solid #ddd', marginBottom: '1.5rem' }}
+                />
+                <button type="submit" disabled={submitting} className="gp-buy-btn" style={{ width: '100%', margin: 0 }}>
+                  {submitting ? 'Processando...' : 'Confirmar e Ver Link do Produto'}
+                </button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showMobileFilters && (
+          <motion.div 
+            className="gp-mobile-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowMobileFilters(false)}
+          >
+            <motion.div 
+              className="gp-mobile-drawer"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="gp-drawer-header">
+                <h2>Filtrar Presentes</h2>
+                <button onClick={() => setShowMobileFilters(false)}><X size={24} /></button>
+              </div>
+              <div className="gp-drawer-content">
+                <Sidebar />
+                <button className="gp-buy-btn" style={{ width: '100%', marginTop: '2rem' }} onClick={() => setShowMobileFilters(false)}>Aplicar Filtros</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <footer className="gp-footer">
         <Heart size={16} fill="#c5a059" color="#c5a059" style={{ marginBottom: '1rem' }} />

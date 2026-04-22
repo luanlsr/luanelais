@@ -33,6 +33,8 @@ export interface Gift {
   price: number;
   buyUrl: string;
   isFeatured?: boolean;
+  isBought?: boolean;
+  boughtBy?: string;
 }
 
 class WeddingAPI {
@@ -125,7 +127,9 @@ class WeddingAPI {
       imageUrl: g.image_url,
       price: Number(g.price),
       buyUrl: g.buy_url,
-      isFeatured: g.is_featured
+      isFeatured: g.is_featured,
+      isBought: g.is_bought,
+      boughtBy: g.bought_by
     }));
   }
 
@@ -157,7 +161,9 @@ class WeddingAPI {
       imageUrl: data.image_url,
       price: Number(data.price),
       buyUrl: data.buy_url,
-      isFeatured: data.is_featured
+      isFeatured: data.is_featured,
+      isBought: data.is_bought,
+      boughtBy: data.bought_by
     };
   }
 
@@ -171,6 +177,8 @@ class WeddingAPI {
     if (data.price) updatePayload.price = data.price;
     if (data.buyUrl) updatePayload.buy_url = data.buyUrl;
     if (data.isFeatured !== undefined) updatePayload.is_featured = data.isFeatured;
+    if (data.isBought !== undefined) updatePayload.is_bought = data.isBought;
+    if (data.boughtBy !== undefined) updatePayload.bought_by = data.boughtBy;
 
     const { error } = await supabase
       .from('lista_presentes')
@@ -185,6 +193,16 @@ class WeddingAPI {
     const { error } = await supabase
       .from('lista_presentes')
       .delete()
+      .eq('id', id)
+      .eq('wedding_id', WEDDING_ID);
+
+    if (error) throw error;
+  }
+
+  async markGiftAsBought(id: string, name: string): Promise<void> {
+    const { error } = await supabase
+      .from('lista_presentes')
+      .update({ is_bought: true, bought_by: name })
       .eq('id', id)
       .eq('wedding_id', WEDDING_ID);
 
