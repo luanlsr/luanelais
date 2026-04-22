@@ -42,8 +42,12 @@ const AdminPage: React.FC = () => {
   /* ── GIFT MODAL ── */
   const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
   const [giftTitle, setGiftTitle] = useState('');
+  const [giftSubtitle, setGiftSubtitle] = useState('');
+  const [giftBrand, setGiftBrand] = useState('');
+  const [giftCategory, setGiftCategory] = useState('Outros');
   const [giftPrice, setGiftPrice] = useState('');
   const [giftImageUrl, setGiftImageUrl] = useState('');
+  const [giftBuyUrl, setGiftBuyUrl] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
 
   useEffect(() => {
@@ -251,24 +255,45 @@ const AdminPage: React.FC = () => {
             <div className="adm-modal-body">
               <form onSubmit={async (e) => {
                 e.preventDefault();
-                await api.addGift({ title: giftTitle, subtitle: '', brand: '', category: 'Geral', price: parseFloat(giftPrice) || 0, imageUrl: giftImageUrl, buyUrl: '', isFeatured });
+                await api.addGift({ 
+                  title: giftTitle, 
+                  subtitle: giftSubtitle, 
+                  brand: giftBrand, 
+                  category: giftCategory, 
+                  price: parseFloat(giftPrice) || 0, 
+                  imageUrl: giftImageUrl, 
+                  buyUrl: giftBuyUrl, 
+                  isFeatured 
+                });
                 setIsGiftModalOpen(false); 
                 // Limpar campos
                 setGiftTitle('');
+                setGiftSubtitle('');
+                setGiftBrand('');
+                setGiftCategory('Outros');
                 setGiftPrice('');
                 setGiftImageUrl('');
+                setGiftBuyUrl('');
                 setIsFeatured(false);
                 loadAll(); 
                 showInfo('Feito!', 'Presente adicionado com sucesso.');
               }} style={{ display: 'grid', gap: '1.2rem' }}>
-                <div className="adm-form-field"><label>Título</label><input className="adm-login-input" value={giftTitle} onChange={e => setGiftTitle(e.target.value)} required /></div>
-                <div className="adm-form-field"><label>Preço</label><input className="adm-login-input" value={giftPrice} onChange={e => setGiftPrice(e.target.value)} required /></div>
-                <div className="adm-form-field"><label>URL Imagem</label><input className="adm-login-input" value={giftImageUrl} onChange={e => setGiftImageUrl(e.target.value)} required /></div>
+                <div className="adm-form-field"><label>Título</label><input className="adm-login-input" value={giftTitle} onChange={e => setGiftTitle(e.target.value)} required placeholder="Ex: Air Fryer" /></div>
+                <div className="adm-form-field"><label>Subtítulo (Opcional)</label><input className="adm-login-input" value={giftSubtitle} onChange={e => setGiftSubtitle(e.target.value)} placeholder="Ex: Forno 5 em 1 12L" /></div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="adm-form-field"><label>Marca</label><input className="adm-login-input" value={giftBrand} onChange={e => setGiftBrand(e.target.value)} placeholder="Ex: Electrolux" /></div>
+                  <div className="adm-form-field"><label>Categoria</label><input className="adm-login-input" value={giftCategory} onChange={e => setGiftCategory(e.target.value)} placeholder="Ex: Cozinha" /></div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="adm-form-field"><label>Preço (Sugestão)</label><input className="adm-login-input" type="number" step="0.01" value={giftPrice} onChange={e => setGiftPrice(e.target.value)} required placeholder="0.00" /></div>
+                  <div className="adm-form-field"><label>Link de Compra</label><input className="adm-login-input" value={giftBuyUrl} onChange={e => setGiftBuyUrl(e.target.value)} placeholder="https://..." /></div>
+                </div>
+                <div className="adm-form-field"><label>URL Imagem</label><input className="adm-login-input" value={giftImageUrl} onChange={e => setGiftImageUrl(e.target.value)} required placeholder="https://..." /></div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.5rem' }}>
                   <input type="checkbox" checked={isFeatured} onChange={e => setIsFeatured(e.target.checked)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
                   <label style={{ fontSize: '0.9rem', color: 'var(--adm-text-sub)', cursor: 'pointer' }}>Sugestão dos Noivos (Destaque)</label>
                 </div>
-                <button type="submit" className="adm-btn-submit" style={{ width: '100%', justifyContent: 'center' }}>Adicionar</button>
+                <button type="submit" className="adm-btn-submit" style={{ width: '100%', justifyContent: 'center' }}>Adicionar Presente</button>
               </form>
             </div>
           </div>
