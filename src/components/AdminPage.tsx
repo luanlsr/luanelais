@@ -14,7 +14,7 @@ const AdminPage: React.FC = () => {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem('admin_auth') === '1');
   const [loginUser, setLoginUser] = useState('');
   const [loginPass, setLoginPass] = useState('');
-  const [tab, setTab] = useState<Tab>('guests');
+  const [tab, setTab] = useState<Tab>('gifts');
 
   const [confirmations, setConfirmations] = useState<Confirmation[]>([]);
   const [gifts, setGifts] = useState<GiftType[]>([]);
@@ -70,6 +70,12 @@ const AdminPage: React.FC = () => {
     } catch (err) {
       showInfo('Erro', 'Não foi possível carregar os dados.');
     }
+  };
+
+  const formatPrice = (price: number) => {
+    const formatted = price.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    const parts = formatted.split(',');
+    return { main: parts[0], cents: parts[1] };
   };
 
   const handleLogin = (e: React.FormEvent) => {
@@ -145,8 +151,8 @@ const AdminPage: React.FC = () => {
       </header>
 
       <nav className="adm-tabs">
-        <button className={`adm-tab ${tab === 'guests' ? 'active' : ''}`} onClick={() => setTab('guests')}><Users size={18} /> Convidados</button>
         <button className={`adm-tab ${tab === 'gifts' ? 'active' : ''}`} onClick={() => setTab('gifts')}><Gift size={18} /> Presentes</button>
+        <button className={`adm-tab ${tab === 'guests' ? 'active' : ''}`} onClick={() => setTab('guests')}><Users size={18} /> Convidados</button>
         <button className={`adm-tab ${tab === 'pix' ? 'active' : ''}`} onClick={() => setTab('pix')}><CreditCard size={18} /> Pix</button>
       </nav>
 
@@ -220,17 +226,40 @@ const AdminPage: React.FC = () => {
               <button className="adm-btn-submit" onClick={() => setIsGiftModalOpen(true)}><Plus /> Novo</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '2rem' }}>
-              {gifts.map(g => (
-                <div key={g.id} className="gp-card">
-                  {g.isFeatured && <div className="gp-badge"><Star size={10} fill="white" /> Sugestão</div>}
-                  <div className="gp-card-img"><img src={g.imageUrl} alt="" /></div>
-                  <div className="gp-card-body">
-                    <h3 style={{ fontSize: '0.95rem' }}>{g.title}</h3>
-                    <div className="gp-price-wrap" style={{ border: 'none', paddingTop: 0 }}><p className="gp-price"><span>R$</span>{g.price.toFixed(2)}</p></div>
-                    <button className="adm-btn-logout" style={{ marginTop: '1.2rem', width: '100%', justifyContent: 'center' }} onClick={() => showConfirm('Remover Presente', 'Deseja excluir este item da vitrine?', () => { api.removeGift(g.id).then(() => { loadAll(); closeDialog(); }); })}><Trash2 size={16} /> Remover</button>
+              {gifts.map(g => {
+                const priceParts = formatPrice(g.price);
+                return (
+                  <div key={g.id} className={`gp-card ${g.isBought ? 'bought' : ''}`}>
+                    {g.isFeatured && <div className="gp-badge"><Star size={10} fill="white" /> Sugestão dos Noivos</div>}
+                    <div className="gp-card-img">
+                      {g.imageUrl ? <img src={g.imageUrl} alt={g.title} /> : <Gift size={48} strokeWidth={0.5} opacity={0.2} />}
+                    </div>
+                    <div className="gp-card-body">
+                      {g.brand && <span className="gp-card-brand">{g.brand}</span>}
+                      <h3>{g.title}</h3>
+                      {g.subtitle && <p className="gp-card-subtitle">{g.subtitle}</p>}
+                      <div className="gp-price-wrap">
+                        <span className="gp-price-label">Valor Sugerido</span>
+                        <p className="gp-price"><span>R$</span>{priceParts.main}<small>,{priceParts.cents}</small></p>
+                      </div>
+
+                      {g.isBought && (
+                        <div className="gp-bought-tag" style={{ marginBottom: '1rem' }}>
+                          <Check size={14} /> Presenteado por {g.boughtBy}
+                        </div>
+                      )}
+
+                      <button 
+                        className="adm-btn-logout" 
+                        style={{ marginTop: 'auto', width: '100%', justifyContent: 'center', background: '#fee2e2', color: '#991b1b', border: 'none' }} 
+                        onClick={() => showConfirm('Remover Presente', 'Deseja excluir este item da vitrine?', () => { api.removeGift(g.id).then(() => { loadAll(); closeDialog(); }); })}
+                      >
+                        <Trash2 size={16} /> Remover
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
