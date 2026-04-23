@@ -191,7 +191,6 @@ const AdminPage: React.FC = () => {
   }, [gifts, giftSearchTerm, adminCategoryFilter]);
 
   const stats = useMemo(() => {
-    const totalConfirmations = confirmations.length;
     const attending = confirmations.filter(c => c.isAttending);
     const notAttending = confirmations.filter(c => !c.isAttending);
     
