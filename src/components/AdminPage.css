@@ -741,3 +741,15 @@
   margin-top: 1.2rem;
   border: 1px solid #dee5d6;
 }
+
+.adm-badge-no {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.65rem;
+  border-radius: 50px;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: 1px solid #fecaca;
+}
+

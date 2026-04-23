@@ -73,6 +73,7 @@ const AdminPage: React.FC = () => {
   const [guestFullName, setGuestFullName] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
+  const [guestIsAttending, setGuestIsAttending] = useState(true);
   const [guestChildren, setGuestChildren] = useState<{ name: string; age: string }[]>([]);
 
   const resetGuestForm = () => {
@@ -80,6 +81,7 @@ const AdminPage: React.FC = () => {
     setGuestFullName('');
     setGuestPhone('');
     setGuestEmail('');
+    setGuestIsAttending(true);
     setGuestChildren([]);
   };
 
@@ -157,6 +159,7 @@ const AdminPage: React.FC = () => {
     setGuestFullName(c.fullName);
     setGuestPhone(c.phone);
     setGuestEmail(c.email || '');
+    setGuestIsAttending(c.isAttending);
     setGuestChildren(c.children || []);
     setIsGuestModalOpen(true);
   };
@@ -188,10 +191,20 @@ const AdminPage: React.FC = () => {
   }, [gifts, giftSearchTerm, adminCategoryFilter]);
 
   const stats = useMemo(() => {
-    const adults = confirmations.length;
+    const totalConfirmations = confirmations.length;
+    const attending = confirmations.filter(c => c.isAttending);
+    const notAttending = confirmations.filter(c => !c.isAttending);
+    
+    const adults = attending.length;
     let kids = 0;
-    confirmations.forEach(c => kids += (c.children?.length || 0));
-    return { adults, kids, total: adults + kids };
+    attending.forEach(c => kids += (c.children?.length || 0));
+    
+    return { 
+      adults, 
+      kids, 
+      total: adults + kids,
+      notAttending: notAttending.length 
+    };
   }, [confirmations]);
 
   if (!authed) {
@@ -233,6 +246,7 @@ const AdminPage: React.FC = () => {
               <div className="adm-stat-card"><span className="adm-stat-label">Total Pessoas</span><span className="adm-stat-value">{stats.total}</span></div>
               <div className="adm-stat-card"><span className="adm-stat-label">Adultos</span><span className="adm-stat-value">{stats.adults}</span></div>
               <div className="adm-stat-card"><span className="adm-stat-label">Crianças</span><span className="adm-stat-value">{stats.kids}</span></div>
+              <div className="adm-stat-card"><span className="adm-stat-label">Não Vão</span><span className="adm-stat-value" style={{ color: '#991b1b' }}>{stats.notAttending}</span></div>
             </div>
 
             <div className="adm-search-wrap">
@@ -249,10 +263,15 @@ const AdminPage: React.FC = () => {
                     <div className="adm-row-main">
                       <div className="adm-guest-info">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                          <h4 style={{ opacity: isSent ? 0.4 : 1 }}>{c.fullName}</h4>
+                          <h4 style={{ opacity: isSent || !c.isAttending ? 0.4 : 1 }}>{c.fullName}</h4>
+                          {!c.isAttending && <span className="adm-badge-no">Não irá</span>}
                           {isSent && <button onClick={(e) => { e.stopPropagation(); setSentReminders(prev => prev.filter(id => id !== c.id)); }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><Check size={16} color="#25D366" /></button>}
                         </div>
-                        {c.children && c.children.length > 0 && <span style={{ opacity: isSent ? 0.3 : 1 }}>{1 + c.children.length} Pessoas</span>}
+                        {c.isAttending ? (
+                          c.children && c.children.length > 0 && <span style={{ opacity: isSent ? 0.3 : 1 }}>{1 + c.children.length} Pessoas</span>
+                        ) : (
+                          <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>Avisou que não poderá ir</span>
+                        )}
                       </div>
                       <div className="adm-row-actions" onClick={e => e.stopPropagation()}>
                         <button className="adm-btn-icon wa" style={{ background: isSent ? '#f0f0f0' : '#25D366' }} onClick={() => openWhatsAppRemind(c.id, c.phone, c.fullName)}>
@@ -478,7 +497,8 @@ const AdminPage: React.FC = () => {
                   fullName: guestFullName,
                   phone: guestPhone,
                   email: guestEmail,
-                  children: guestChildren
+                  isAttending: guestIsAttending,
+                  children: guestIsAttending ? guestChildren : []
                 };
 
                 try {
@@ -497,29 +517,45 @@ const AdminPage: React.FC = () => {
                   <div className="adm-form-field"><label>E-mail (Opcional)</label><input className="adm-login-input" type="email" value={guestEmail} onChange={e => setGuestEmail(e.target.value)} /></div>
                 </div>
 
-                <div className="adm-form-field">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
-                    <label>Dependentes</label>
-                    <button type="button" className="adm-btn-submit" style={{ padding: '0.4rem 0.8rem', fontSize: '0.7rem' }} onClick={() => setGuestChildren([...guestChildren, { name: '', age: '' }])}>+ Adicionar</button>
-                  </div>
-                  <div style={{ display: 'grid', gap: '0.8rem' }}>
-                    {guestChildren.map((child, idx) => (
-                      <div key={idx} style={{ display: 'flex', gap: '0.5rem' }}>
-                        <input className="adm-login-input" style={{ flex: 1 }} placeholder="Nome" value={child.name} onChange={e => {
-                          const newC = [...guestChildren];
-                          newC[idx].name = e.target.value;
-                          setGuestChildren(newC);
-                        }} required />
-                        <input className="adm-login-input" style={{ width: '60px' }} placeholder="Idade" value={child.age} onChange={e => {
-                          const newC = [...guestChildren];
-                          newC[idx].age = e.target.value;
-                          setGuestChildren(newC);
-                        }} required />
-                        <button type="button" className="adm-btn-icon trash" style={{ padding: '0.5rem' }} onClick={() => setGuestChildren(guestChildren.filter((_, i) => i !== idx))}><X size={14} /></button>
-                      </div>
-                    ))}
-                  </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.5rem', background: '#f9f9f8', borderRadius: '4px' }}>
+                  <input 
+                    type="checkbox" 
+                    id="isAttending"
+                    checked={guestIsAttending} 
+                    onChange={e => {
+                      setGuestIsAttending(e.target.checked);
+                      if (!e.target.checked) setGuestChildren([]);
+                    }} 
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }} 
+                  />
+                  <label htmlFor="isAttending" style={{ fontSize: '0.9rem', color: 'var(--adm-text-sub)', cursor: 'pointer', fontWeight: 500 }}>Comparecerá ao evento</label>
                 </div>
+
+                {guestIsAttending && (
+                  <div className="adm-form-field">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
+                      <label>Dependentes</label>
+                      <button type="button" className="adm-btn-submit" style={{ padding: '0.4rem 0.8rem', fontSize: '0.7rem' }} onClick={() => setGuestChildren([...guestChildren, { name: '', age: '' }])}>+ Adicionar</button>
+                    </div>
+                    <div style={{ display: 'grid', gap: '0.8rem' }}>
+                      {guestChildren.map((child, idx) => (
+                        <div key={idx} style={{ display: 'flex', gap: '0.5rem' }}>
+                          <input className="adm-login-input" style={{ flex: 1 }} placeholder="Nome" value={child.name} onChange={e => {
+                            const newC = [...guestChildren];
+                            newC[idx].name = e.target.value;
+                            setGuestChildren(newC);
+                          }} required />
+                          <input className="adm-login-input" style={{ width: '60px' }} placeholder="Idade" value={child.age} onChange={e => {
+                            const newC = [...guestChildren];
+                            newC[idx].age = e.target.value;
+                            setGuestChildren(newC);
+                          }} required />
+                          <button type="button" className="adm-btn-icon trash" style={{ padding: '0.5rem' }} onClick={() => setGuestChildren(guestChildren.filter((_, i) => i !== idx))}><X size={14} /></button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <button type="submit" className="adm-btn-submit" style={{ width: '100%', justifyContent: 'center', marginTop: '1rem' }}>Salvar Alterações</button>
               </form>

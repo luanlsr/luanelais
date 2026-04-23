@@ -23,6 +23,7 @@ export interface Confirmation {
   fullName: string;
   phone: string;
   email: string;
+  isAttending: boolean;
   children: Child[];
   createdAt?: string;
 }
@@ -54,7 +55,8 @@ class WeddingAPI {
         full_name: data.fullName,
         phone: data.phone,
         email: data.email,
-        children: data.children
+        is_attending: data.isAttending,
+        children: data.isAttending ? data.children : []
       }]);
 
     if (error) throw error;
@@ -74,6 +76,7 @@ class WeddingAPI {
       fullName: c.full_name,
       phone: c.phone,
       email: c.email,
+      isAttending: c.is_attending !== false, // Default to true if null
       children: c.children || [],
       createdAt: c.created_at
     }));
@@ -90,14 +93,16 @@ class WeddingAPI {
   }
 
   async updateConfirmation(id: string, data: Partial<Omit<Confirmation, 'id' | 'createdAt'>>): Promise<void> {
+    const updatePayload: any = {};
+    if (data.fullName !== undefined) updatePayload.full_name = data.fullName;
+    if (data.phone !== undefined) updatePayload.phone = data.phone;
+    if (data.email !== undefined) updatePayload.email = data.email;
+    if (data.isAttending !== undefined) updatePayload.is_attending = data.isAttending;
+    if (data.children !== undefined) updatePayload.children = data.isAttending === false ? [] : data.children;
+
     const { error } = await supabase
       .from('confirmacoes')
-      .update({
-        full_name: data.fullName,
-        phone: data.phone,
-        email: data.email,
-        children: data.children
-      })
+      .update(updatePayload)
       .eq('id', id)
       .eq('wedding_id', WEDDING_ID);
 

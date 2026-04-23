@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Users, Gift, CheckCircle2, Navigation, Copy, ArrowRight, Trash2, Plus, Volume2, VolumeX } from 'lucide-react';
+import { MapPin, Users, Gift, CheckCircle2, Navigation, Copy, ArrowRight, Trash2, Plus, Volume2, VolumeX, Check, X } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { api } from '../services/api';
 import { generatePixPayload, maskPhone } from '../utils/pix';
@@ -32,6 +32,7 @@ const Envelope: React.FC = () => {
     fullName: '',
     phone: '',
     email: '',
+    isAttending: true,
   });
   const [children, setChildren] = useState<{ name: string; age: string }[]>([]);
 
@@ -139,7 +140,8 @@ const Envelope: React.FC = () => {
         fullName: formData.fullName,
         phone: formData.phone,
         email: formData.email,
-        children: children
+        isAttending: formData.isAttending,
+        children: formData.isAttending ? children : []
       });
 
       setRsvpStatus('success');
@@ -290,6 +292,26 @@ const Envelope: React.FC = () => {
 
                         return (
                           <>
+                            <div className="rsvp-attendance-toggle">
+                              <button 
+                                type="button" 
+                                className={`attendance-btn ${formData.isAttending ? 'active' : ''}`}
+                                onClick={() => setFormData({ ...formData, isAttending: true })}
+                              >
+                                <Check size={16} /> Sim, eu vou!
+                              </button>
+                              <button 
+                                type="button" 
+                                className={`attendance-btn ${!formData.isAttending ? 'active' : ''}`}
+                                onClick={() => {
+                                  setFormData({ ...formData, isAttending: false });
+                                  setChildren([]);
+                                }}
+                              >
+                                <X size={16} /> Não poderei ir
+                              </button>
+                            </div>
+
                             <div className="rsvp-field-group">
                               <label>Nome Completo</label>
                               <input
@@ -329,36 +351,38 @@ const Envelope: React.FC = () => {
                               </div>
                             </div>
 
-                            <div className="rsvp-children-section">
-                              <div className="rsvp-children-header">
-                                <label>Filhos Pequenos?</label>
-                                <button type="button" onClick={addChild} className="btn-add-child">
-                                  <Plus size={14} /> Adicionar Filho
-                                </button>
-                              </div>
+                              {formData.isAttending && (
+                                <div className="rsvp-children-section">
+                                  <div className="rsvp-children-header">
+                                    <label>Filhos Pequenos?</label>
+                                    <button type="button" onClick={addChild} className="btn-add-child">
+                                      <Plus size={14} /> Adicionar Filho
+                                    </button>
+                                  </div>
 
-                              {children.map((child, idx) => (
-                                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} key={idx} className="rsvp-child-row">
-                                  <input
-                                    placeholder="Nome do filho"
-                                    value={child.name}
-                                    onChange={e => updateChild(idx, 'name', e.target.value)}
-                                    required
-                                  />
-                                  <input
-                                    placeholder="Idade"
-                                    type="number"
-                                    style={{ width: '80px' }}
-                                    value={child.age}
-                                    onChange={e => updateChild(idx, 'age', e.target.value)}
-                                    required
-                                  />
-                                  <button type="button" onClick={() => removeChild(idx)} className="btn-remove-child">
-                                    <Trash2 size={16} />
-                                  </button>
-                                </motion.div>
-                              ))}
-                            </div>
+                                  {children.map((child, idx) => (
+                                    <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} key={idx} className="rsvp-child-row">
+                                      <input
+                                        placeholder="Nome do filho"
+                                        value={child.name}
+                                        onChange={e => updateChild(idx, 'name', e.target.value)}
+                                        required
+                                      />
+                                      <input
+                                        placeholder="Idade"
+                                        type="number"
+                                        style={{ width: '80px' }}
+                                        value={child.age}
+                                        onChange={e => updateChild(idx, 'age', e.target.value)}
+                                        required
+                                      />
+                                      <button type="button" onClick={() => removeChild(idx)} className="btn-remove-child">
+                                        <Trash2 size={16} />
+                                      </button>
+                                    </motion.div>
+                                  ))}
+                                </div>
+                              )}
 
                             <div className="rsvp-actions">
                               <button 
@@ -383,11 +407,12 @@ const Envelope: React.FC = () => {
                   )}
                   {rsvpStatus === 'success' && (
                     <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="inv-success">
-                      <CheckCircle2 size={52} /><h3>Confirmado com Sucesso!</h3>
-                      <p>Mal podemos esperar para celebrar com você.</p>
+                      <CheckCircle2 size={52} />
+                      <h3>{formData.isAttending ? 'Confirmado com Sucesso!' : 'Obrigado por nos avisar!'}</h3>
+                      <p>{formData.isAttending ? 'Mal podemos esperar para celebrar com você.' : 'Sentiremos sua falta, mas agradecemos o carinho.'}</p>
                       <button onClick={() => {
                         setRsvpStatus('idle');
-                        setFormData({ fullName: '', phone: '', email: '' });
+                        setFormData({ fullName: '', phone: '', email: '', isAttending: true });
                         setChildren([]);
                       }} className="inv-btn-ghost">Confirmar outra pessoa</button>
                     </motion.div>
