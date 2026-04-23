@@ -259,7 +259,7 @@ class WeddingAPI {
       .select('*')
       .eq('wedding_id', WEDDING_ID)
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Erro ao buscar Pix:', error);
@@ -280,7 +280,7 @@ class WeddingAPI {
       .select('id')
       .eq('wedding_id', WEDDING_ID)
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (data) {
       await supabase.from('chaves_pix').update({

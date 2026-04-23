@@ -27,7 +27,8 @@ const Envelope: React.FC = () => {
   }, [shouldSkipEnvelope, navigate, location.pathname]);
 
   // ── RSVP state ──
-  const [rsvpStatus, setRsvpStatus] = useState<'idle' | 'form' | 'loading' | 'success'>('idle');
+  const [rsvpStatus, setRsvpStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [isRSVPModalOpen, setIsRSVPModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
@@ -153,8 +154,11 @@ const Envelope: React.FC = () => {
       });
 
     } catch {
-      setRsvpStatus('form');
+      setIsRSVPModalOpen(false);
+      setRsvpStatus('idle');
       alert('Erro ao confirmar. Tente novamente.');
+    } finally {
+      setIsRSVPModalOpen(false);
     }
   };
 
@@ -185,7 +189,7 @@ const Envelope: React.FC = () => {
               </div>
               <nav className="inv-nav-links">
                 <a href="#cerimonia" className={activeSection === 'cerimonia' ? 'active' : ''}>Cerimônia</a>
-                <a href="#rsvp" className={activeSection === 'rsvp' ? 'active' : ''}>Confirmar</a>
+                <a href="#rsvp" className={activeSection === 'rsvp' ? 'active' : ''}>Participar</a>
                 <a href="#presentes" className={activeSection === 'presentes' ? 'active' : ''}>Presentes</a>
               </nav>
             </div>
@@ -231,7 +235,7 @@ const Envelope: React.FC = () => {
                   <p className="h-date-sub">SÁBADO ÀS 17:00H</p>
                 </div>
 
-                <a href="#rsvp" className="hero-cta">Confirmar Presença</a>
+                <a href="#rsvp" className="hero-cta">Responder Convite</a>
               </div>
             </div>
           </section>
@@ -271,135 +275,14 @@ const Envelope: React.FC = () => {
             <section id="rsvp" className="inv-section-full inv-section-olive">
               <div className="inv-sec-header">
                 <div className="inv-sec-icon inv-sec-icon-light"><Users size={20} /></div>
-                <h2 className="inv-sec-title inv-sec-title-light">Confirmar Presença</h2>
+                <h2 className="inv-sec-title inv-sec-title-light">Confirmação de Presença</h2>
               </div>
               <div className="inv-sec-body">
                 <AnimatePresence mode="wait">
-                  {rsvpStatus === 'idle' && (
-                    <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="inv-rsvp-idle">
-                      <p className="inv-rsvp-intro">Confirme sua presença no nosso grande dia preenchendo o formulário abaixo.</p>
-                      <button onClick={() => setRsvpStatus('form')} className="inv-btn-solid">Confirmar Presença</button>
-                    </motion.div>
-                  )}
-                  {rsvpStatus === 'form' && (
-                    <motion.form key="form" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} onSubmit={handleConfirm} className="inv-rsvp-form">
-                      {/* Lógica de Validação local */}
-                      {(() => {
-                        const isNameValid = formData.fullName.trim().split(' ').length >= 2 && formData.fullName.trim().length >= 6;
-                        const numericPhone = formData.phone.replace(/\D/g, '');
-                        const isPhoneValid = numericPhone.length === 11;
-                        const isFormReady = isNameValid && isPhoneValid;
-
-                        return (
-                          <>
-                            <div className="rsvp-attendance-toggle">
-                              <button 
-                                type="button" 
-                                className={`attendance-btn ${formData.isAttending ? 'active' : ''}`}
-                                onClick={() => setFormData({ ...formData, isAttending: true })}
-                              >
-                                <Check size={16} /> Sim, eu vou!
-                              </button>
-                              <button 
-                                type="button" 
-                                className={`attendance-btn ${!formData.isAttending ? 'active' : ''}`}
-                                onClick={() => {
-                                  setFormData({ ...formData, isAttending: false });
-                                  setChildren([]);
-                                }}
-                              >
-                                <X size={16} /> Não poderei ir
-                              </button>
-                            </div>
-
-                            <div className="rsvp-field-group">
-                              <label>Nome Completo</label>
-                              <input
-                                type="text"
-                                placeholder="Seu nome completo..."
-                                value={formData.fullName}
-                                onChange={e => setFormData({ ...formData, fullName: e.target.value })}
-                                required
-                              />
-                              {!isNameValid && formData.fullName.length > 0 && (
-                                <span style={{ fontSize: '0.65rem', color: '#ff8a8a', marginTop: '0.3rem' }}>Por favor, informe seu nome e sobrenome.</span>
-                              )}
-                            </div>
-
-                            <div className="rsvp-field-row">
-                              <div className="rsvp-field-group">
-                                <label>WhatsApp / Telefone</label>
-                                <input
-                                  type="tel"
-                                  placeholder="(00) 00000-0000"
-                                  value={formData.phone}
-                                  onChange={e => setFormData({ ...formData, phone: maskPhone(e.target.value) })}
-                                  required
-                                />
-                                {!isPhoneValid && numericPhone.length > 0 && (
-                                  <span style={{ fontSize: '0.65rem', color: '#ff8a8a', marginTop: '0.3rem' }}>Informe o DDD + 9 dígitos.</span>
-                                )}
-                              </div>
-                              <div className="rsvp-field-group">
-                                <label>E-mail</label>
-                                <input
-                                  type="email"
-                                  placeholder="seu@email.com"
-                                  value={formData.email}
-                                  onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                />
-                              </div>
-                            </div>
-
-                              {formData.isAttending && (
-                                <div className="rsvp-children-section">
-                                  <div className="rsvp-children-header">
-                                    <label>Filhos Pequenos?</label>
-                                    <button type="button" onClick={addChild} className="btn-add-child">
-                                      <Plus size={14} /> Adicionar Filho
-                                    </button>
-                                  </div>
-
-                                  {children.map((child, idx) => (
-                                    <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} key={idx} className="rsvp-child-row">
-                                      <input
-                                        placeholder="Nome do filho"
-                                        value={child.name}
-                                        onChange={e => updateChild(idx, 'name', e.target.value)}
-                                        required
-                                      />
-                                      <input
-                                        placeholder="Idade"
-                                        type="number"
-                                        style={{ width: '80px' }}
-                                        value={child.age}
-                                        onChange={e => updateChild(idx, 'age', e.target.value)}
-                                        required
-                                      />
-                                      <button type="button" onClick={() => removeChild(idx)} className="btn-remove-child">
-                                        <Trash2 size={16} />
-                                      </button>
-                                    </motion.div>
-                                  ))}
-                                </div>
-                              )}
-
-                            <div className="rsvp-actions">
-                              <button 
-                                type="submit" 
-                                className="inv-btn-solid" 
-                                disabled={!isFormReady}
-                                style={{ opacity: isFormReady ? 1 : 0.5, cursor: isFormReady ? 'pointer' : 'not-allowed' }}
-                              >
-                                Salvar Confirmação
-                              </button>
-                              <button type="button" onClick={() => setRsvpStatus('idle')} className="inv-btn-ghost">Cancelar</button>
-                            </div>
-                          </>
-                        );
-                      })()}
-                    </motion.form>
-                  )}
+                    <div className="inv-rsvp-idle">
+                      <p className="inv-rsvp-intro">Por favor, responda ao convite preenchendo o formulário abaixo para nos ajudar no planejamento.</p>
+                      <button onClick={() => setIsRSVPModalOpen(true)} className="inv-btn-solid">Responder Convite</button>
+                    </div>
                   {rsvpStatus === 'loading' && (
                     <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="inv-loading">
                       <div className="inv-spinner" /><p>Salvando com carinho...</p>
@@ -437,10 +320,10 @@ const Envelope: React.FC = () => {
                 <p className="inv-rsvp-intro" style={{ marginTop: '2rem', color: '#8b8b80', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
                   Ou se preferir nos presentear com uma contribuição livre:
                 </p>
-                
-                <button 
+
+                <button
                   onClick={() => setShowQRCode(!showQRCode)}
-                  className="inv-btn-outline" 
+                  className="inv-btn-outline"
                   style={{ fontSize: '0.75rem', padding: '0.8rem 2rem' }}
                 >
                   {showQRCode ? 'Ocultar Chave Pix' : 'Clique para ver a Chave Pix'}
@@ -448,7 +331,7 @@ const Envelope: React.FC = () => {
 
                 <AnimatePresence>
                   {showQRCode && (
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, y: -10, height: 0 }}
                       animate={{ opacity: 1, y: 0, height: 'auto' }}
                       exit={{ opacity: 0, y: -10, height: 0 }}
@@ -540,7 +423,7 @@ const Envelope: React.FC = () => {
             </motion.div>
 
             {/* Selo movido para fora para evitar clipping e ficar por cima de tudo */}
-            <motion.div 
+            <motion.div
               className="env-seal-wrap"
               initial={{ x: '-50%', y: '-50%', opacity: 1 }}
               animate={coverStatus === 'opening' ? { x: '-50%', y: '-100vh', opacity: 0 } : { x: '-50%', y: '-50%', opacity: 1 }}
@@ -558,7 +441,7 @@ const Envelope: React.FC = () => {
       </audio>
 
       {coverStatus === 'open' && (
-        <motion.button 
+        <motion.button
           className="inv-audio-control"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -568,6 +451,153 @@ const Envelope: React.FC = () => {
           {isPlaying ? <Volume2 size={20} /> : <VolumeX size={20} />}
         </motion.button>
       )}
+
+      {/* ── RSVP MODAL ── */}
+      <AnimatePresence>
+        {isRSVPModalOpen && (
+          <div className="rsvp-modal-overlay" onClick={() => setIsRSVPModalOpen(false)}>
+            <motion.div 
+              className="rsvp-modal-content"
+              initial={{ opacity: 0, y: '100%' }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="rsvp-modal-header-top">
+                <h3>Responder Convite</h3>
+                <button className="rsvp-close-btn" onClick={() => setIsRSVPModalOpen(false)}><X size={24} /></button>
+              </div>
+              
+              <form onSubmit={handleConfirm} className="inv-rsvp-form">
+                {(() => {
+                  const isNameValid = formData.fullName.trim().split(' ').length >= 2 && formData.fullName.trim().length >= 6;
+                  const numericPhone = formData.phone.replace(/\D/g, '');
+                  const isPhoneValid = numericPhone.length === 11;
+                  const isFormReady = isNameValid && isPhoneValid;
+
+                  return (
+                    <>
+                      <div className="rsvp-attendance-toggle">
+                        <button
+                          type="button"
+                          className={`attendance-btn btn-yes ${formData.isAttending ? 'active' : ''}`}
+                          onClick={() => setFormData({ ...formData, isAttending: true })}
+                        >
+                          <Check size={16} /> Sim, eu vou!
+                        </button>
+                        <button
+                          type="button"
+                          className={`attendance-btn btn-no ${!formData.isAttending ? 'active' : ''}`}
+                          onClick={() => {
+                            setFormData({ ...formData, isAttending: false });
+                            setChildren([]);
+                          }}
+                        >
+                          <X size={16} /> Não poderei ir
+                        </button>
+                      </div>
+
+                      <div className="rsvp-field-group">
+                        <label>Nome Completo</label>
+                        <input
+                          type="text"
+                          placeholder="Seu nome completo..."
+                          value={formData.fullName}
+                          onChange={e => setFormData({ ...formData, fullName: e.target.value })}
+                          required
+                        />
+                        {!isNameValid && formData.fullName.length > 0 && (
+                          <span style={{ fontSize: '0.65rem', color: '#ff8a8a', marginTop: '0.3rem' }}>Por favor, informe seu nome e sobrenome.</span>
+                        )}
+                      </div>
+
+                      <div className="rsvp-field-row">
+                        <div className="rsvp-field-group">
+                          <label>WhatsApp / Telefone</label>
+                          <input
+                            type="tel"
+                            placeholder="(00) 00000-0000"
+                            value={formData.phone}
+                            onChange={e => setFormData({ ...formData, phone: maskPhone(e.target.value) })}
+                            required
+                          />
+                          {!isPhoneValid && numericPhone.length > 0 && (
+                            <span style={{ fontSize: '0.65rem', color: '#ff8a8a', marginTop: '0.3rem' }}>Informe o DDD + 9 dígitos.</span>
+                          )}
+                        </div>
+                        <div className="rsvp-field-group">
+                          <label>E-mail (Opcional)</label>
+                          <input
+                            type="email"
+                            placeholder="seu@email.com"
+                            value={formData.email}
+                            onChange={e => setFormData({ ...formData, email: e.target.value })}
+                          />
+                        </div>
+                      </div>
+
+                      {formData.isAttending && (
+                        <div className="rsvp-children-section">
+                          <div className="rsvp-children-header">
+                            <label>Filhos  menores de 12 anos?</label>
+                            <button type="button" onClick={addChild} className="btn-add-child">
+                              <Plus size={14} /> Adicionar Filho
+                            </button>
+                          </div>
+
+                          {children.map((child, idx) => (
+                            <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} key={idx} className="rsvp-child-row">
+                              <input
+                                placeholder="Nome do filho"
+                                value={child.name}
+                                onChange={e => updateChild(idx, 'name', e.target.value)}
+                                required
+                              />
+                              <input
+                                placeholder="Idade"
+                                type="number"
+                                style={{ width: '60px' }}
+                                value={child.age}
+                                onChange={e => updateChild(idx, 'age', e.target.value)}
+                                required
+                              />
+                              <button type="button" onClick={() => removeChild(idx)} className="btn-remove-child">
+                                <Trash2 size={16} />
+                              </button>
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
+
+                    </>
+                  );
+                })()}
+              </form>
+
+              {/* Botões de Ação Fixos no Rodapé do Modal */}
+              <div className="rsvp-modal-footer">
+                <button
+                  type="button"
+                  onClick={() => (document.querySelector('.inv-rsvp-form') as HTMLFormElement)?.requestSubmit()}
+                  className="inv-btn-solid"
+                  style={{ 
+                    background: '#2D3820', 
+                    color: 'white', 
+                    opacity: (formData.fullName.trim().split(' ').length >= 2 && formData.fullName.trim().length >= 6 && formData.phone.replace(/\D/g, '').length === 11) ? 1 : 0.5, 
+                    cursor: (formData.fullName.trim().split(' ').length >= 2 && formData.fullName.trim().length >= 6 && formData.phone.replace(/\D/g, '').length === 11) ? 'pointer' : 'not-allowed',
+                    width: '100%'
+                  }}
+                  disabled={!(formData.fullName.trim().split(' ').length >= 2 && formData.fullName.trim().length >= 6 && formData.phone.replace(/\D/g, '').length === 11) || rsvpStatus === 'loading'}
+                >
+                  {rsvpStatus === 'loading' ? 'Enviando...' : 'Salvar Resposta'}
+                </button>
+                <button type="button" onClick={() => setIsRSVPModalOpen(false)} className="inv-btn-ghost" style={{ color: '#2D3820', opacity: 0.6, width: '100%', marginTop: '0.5rem' }}>Cancelar</button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

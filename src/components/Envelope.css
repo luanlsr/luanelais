@@ -1195,16 +1195,19 @@
 .inv-rsvp-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.8rem; /* inputs bem mais próximos */
+  justify-content: flex-start;
   text-align: left;
-  max-width: 500px;
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
+  overflow-x: hidden;
 }
 
 .rsvp-field-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.2rem;
   flex: 1;
 }
 
@@ -1240,7 +1243,7 @@
 
 .rsvp-field-row {
   display: flex;
-  gap: 1rem;
+  gap: 1.2rem; /* Mesmo gap do form pai */
 }
 
 @media (max-width: 600px) {
@@ -1258,7 +1261,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem; /* Reduzido para ficar mais próximo da label */
 }
 
 .btn-add-child {
@@ -1285,7 +1288,7 @@
 .rsvp-child-row {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem; /* Consistente com os outros campos */
   align-items: center;
 }
 
@@ -1398,11 +1401,10 @@
   }
 }
 
-/* Status de Presença Toggle */
 .rsvp-attendance-toggle {
   display: flex;
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0; /* Removido para usar apenas o gap do pai de 2rem */
 }
 
 .attendance-btn {
@@ -1433,4 +1435,186 @@
 .attendance-btn:not(.active):hover {
   background: rgba(255, 255, 257, 0.08);
   border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* RSVP Modal */
+.rsvp-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(45, 56, 32, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: 20000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.rsvp-modal-content {
+  background: #fdfaf4;
+  width: 100%;
+  max-width: 540px; /* Mais estreito */
+  height: 540px; /* Altura reduzida consideravelmente */
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem; /* Padding mais enxuto */
+  border-radius: 20px;
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+@media (max-width: 600px) {
+  .rsvp-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .rsvp-modal-content {
+    height: 75vh; /* Mais baixo no mobile */
+    max-width: 100%;
+    border-radius: 30px 30px 0 0;
+    padding: 1.5rem 1.2rem 1rem;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
+  }
+
+  .rsvp-modal-header-top {
+    margin-bottom: 1rem;
+  }
+
+  .rsvp-attendance-toggle {
+    flex-direction: column;
+    gap: 0.75rem; /* Botões de sim/não levemente mais próximos para formarem um grupo coeso */
+  }
+}
+
+
+.rsvp-modal-content .inv-rsvp-form {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 5px; /* Espaço para o scroll */
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 0; /* Removido para controle total por gap/padding */
+}
+
+.rsvp-modal-footer {
+  flex-shrink: 0;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(45, 56, 32, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+
+/* Custom scrollbar para o form interno */
+.rsvp-modal-content .inv-rsvp-form::-webkit-scrollbar {
+  width: 4px;
+}
+.rsvp-modal-content .inv-rsvp-form::-webkit-scrollbar-track {
+  background: transparent;
+}
+.rsvp-modal-content .inv-rsvp-form::-webkit-scrollbar-thumb {
+  background: rgba(45, 56, 32, 0.1);
+  border-radius: 10px;
+}
+
+
+.rsvp-modal-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.rsvp-modal-header-top h3 {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  color: #2D3820;
+  margin: 0;
+}
+
+.rsvp-close-btn {
+  background: none;
+  border: none;
+  color: #2D3820;
+  opacity: 0.4;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+}
+
+.rsvp-close-btn:hover {
+  opacity: 1;
+}
+
+/* Ajustes no formulário dentro do modal */
+.rsvp-modal-content .inv-rsvp-form {
+  padding: 0;
+}
+
+.rsvp-modal-content .inv-rsvp-input {
+  border-bottom-color: rgba(45, 56, 32, 0.1);
+  color: #2D3820;
+}
+
+.rsvp-modal-content .inv-rsvp-input::placeholder {
+  color: rgba(45, 56, 32, 0.3);
+}
+
+.rsvp-modal-content label {
+  color: #2D3820;
+  opacity: 0.6;
+}
+
+.rsvp-modal-content input {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(45, 56, 32, 0.12) !important;
+  border-radius: 0 !important;
+  padding: 0.8rem 0 !important;
+  color: #2D3820;
+  font-size: 1.1rem;
+}
+
+.rsvp-modal-content input:focus {
+  border-bottom-color: #2D3820 !important;
+}
+
+.rsvp-modal-content .attendance-btn {
+  background: rgba(45, 56, 32, 0.05);
+  border-color: rgba(45, 56, 32, 0.1);
+  color: #2D3820;
+  opacity: 0.6;
+}
+
+.rsvp-modal-content .attendance-btn.btn-yes.active {
+  background: #2D3820;
+  color: white;
+  opacity: 1;
+  border-color: #2D3820;
+}
+
+.rsvp-modal-content .attendance-btn.btn-no.active {
+  background: #991b1b;
+  color: white;
+  opacity: 1;
+  border-color: #991b1b;
+}
+
+.attendance-btn svg {
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.attendance-btn.btn-yes.active svg {
+  color: #adff2f; /* Verde lima suave para o check */
+}
+
+.attendance-btn.btn-no.active svg {
+  color: #ff8a8a; /* Vermelho suave para o X */
 }
