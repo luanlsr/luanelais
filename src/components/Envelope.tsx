@@ -35,6 +35,7 @@ const Envelope: React.FC = () => {
     email: '',
     isAttending: true,
   });
+  const [hasChildren, setHasChildren] = useState<boolean | null>(null);
   const [children, setChildren] = useState<{ name: string; age: string }[]>([]);
 
   // ── Pix data ──
@@ -174,7 +175,8 @@ const Envelope: React.FC = () => {
   const isNameValid = formData.fullName.trim().split(' ').length >= 2 && formData.fullName.trim().length >= 6;
   const numericPhone = formData.phone.replace(/\D/g, '');
   const isPhoneValid = numericPhone.length === 11;
-  const isFormReady = isNameValid && isPhoneValid;
+  const isChildrenSelected = !formData.isAttending || hasChildren !== null;
+  const isFormReady = isNameValid && isPhoneValid && isChildrenSelected;
 
   return (
     <div className="env-wrapper">
@@ -540,34 +542,61 @@ const Envelope: React.FC = () => {
 
                       {formData.isAttending && (
                         <div className="rsvp-children-section">
-                          <div className="rsvp-children-header">
-                            <label>Filhos  menores de 12 anos?</label>
-                            <button type="button" onClick={addChild} className="btn-add-child">
-                              <Plus size={14} /> Adicionar Filho
+                          <label className="children-question-label">Filhos menores de 12 anos? *</label>
+                          <div className="children-radio-group">
+                            <button
+                              type="button"
+                              className={`radio-option ${hasChildren === true ? 'active' : ''}`}
+                              onClick={() => {
+                                setHasChildren(true);
+                                if (children.length === 0) addChild();
+                              }}
+                            >
+                              Sim
+                            </button>
+                            <button
+                              type="button"
+                              className={`radio-option ${hasChildren === false ? 'active' : ''}`}
+                              onClick={() => {
+                                setHasChildren(false);
+                                setChildren([]);
+                              }}
+                            >
+                              Não
                             </button>
                           </div>
 
-                          {children.map((child, idx) => (
-                            <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} key={idx} className="rsvp-child-row">
-                              <input
-                                placeholder="Nome do filho"
-                                value={child.name}
-                                onChange={e => updateChild(idx, 'name', e.target.value)}
-                                required
-                              />
-                              <input
-                                placeholder="Idade"
-                                type="number"
-                                style={{ width: '60px' }}
-                                value={child.age}
-                                onChange={e => updateChild(idx, 'age', e.target.value)}
-                                required
-                              />
-                              <button type="button" onClick={() => removeChild(idx)} className="btn-remove-child">
-                                <Trash2 size={16} />
-                              </button>
-                            </motion.div>
-                          ))}
+                          {hasChildren === true && (
+                            <div className="rsvp-children-list">
+                              <div className="rsvp-children-header">
+                                <button type="button" onClick={addChild} className="btn-add-child">
+                                  <Plus size={14} /> Adicionar outro filho
+                                </button>
+                              </div>
+
+                              {children.map((child, idx) => (
+                                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} key={idx} className="rsvp-child-row">
+                                  <input
+                                    placeholder="Nome do filho"
+                                    value={child.name}
+                                    onChange={e => updateChild(idx, 'name', e.target.value)}
+                                    required
+                                  />
+                                  <input
+                                    placeholder="Idade"
+                                    type="number"
+                                    style={{ width: '60px' }}
+                                    value={child.age}
+                                    onChange={e => updateChild(idx, 'age', e.target.value)}
+                                    required
+                                  />
+                                  <button type="button" onClick={() => removeChild(idx)} className="btn-remove-child">
+                                    <Trash2 size={16} />
+                                  </button>
+                                </motion.div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
 
