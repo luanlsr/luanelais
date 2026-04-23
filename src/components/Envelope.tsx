@@ -170,6 +170,12 @@ const Envelope: React.FC = () => {
 
   const panelTransition = { duration: 0.9, ease: [0.76, 0, 0.24, 1] as const };
 
+  // ── Form Validation ──
+  const isNameValid = formData.fullName.trim().split(' ').length >= 2 && formData.fullName.trim().length >= 6;
+  const numericPhone = formData.phone.replace(/\D/g, '');
+  const isPhoneValid = numericPhone.length === 11;
+  const isFormReady = isNameValid && isPhoneValid;
+
   return (
     <div className="env-wrapper">
       <div className="inv-card-wrap" ref={scrollRef}>
@@ -471,11 +477,6 @@ const Envelope: React.FC = () => {
               
               <form onSubmit={handleConfirm} className="inv-rsvp-form">
                 {(() => {
-                  const isNameValid = formData.fullName.trim().split(' ').length >= 2 && formData.fullName.trim().length >= 6;
-                  const numericPhone = formData.phone.replace(/\D/g, '');
-                  const isPhoneValid = numericPhone.length === 11;
-                  const isFormReady = isNameValid && isPhoneValid;
-
                   return (
                     <>
                       <div className="rsvp-attendance-toggle">
@@ -584,11 +585,11 @@ const Envelope: React.FC = () => {
                   style={{ 
                     background: '#2D3820', 
                     color: 'white', 
-                    opacity: (formData.fullName.trim().split(' ').length >= 2 && formData.fullName.trim().length >= 6 && formData.phone.replace(/\D/g, '').length === 11) ? 1 : 0.5, 
-                    cursor: (formData.fullName.trim().split(' ').length >= 2 && formData.fullName.trim().length >= 6 && formData.phone.replace(/\D/g, '').length === 11) ? 'pointer' : 'not-allowed',
+                    opacity: isFormReady ? 1 : 0.5, 
+                    cursor: isFormReady ? 'pointer' : 'not-allowed',
                     width: '100%'
                   }}
-                  disabled={!(formData.fullName.trim().split(' ').length >= 2 && formData.fullName.trim().length >= 6 && formData.phone.replace(/\D/g, '').length === 11) || rsvpStatus === 'loading'}
+                  disabled={!isFormReady || rsvpStatus === 'loading'}
                 >
                   {rsvpStatus === 'loading' ? 'Enviando...' : 'Salvar Resposta'}
                 </button>
