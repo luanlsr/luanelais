@@ -174,7 +174,7 @@ const Envelope: React.FC = () => {
   // ── Form Validation ──
   const isNameValid = formData.fullName.trim().split(' ').length >= 2 && formData.fullName.trim().length >= 6;
   const numericPhone = formData.phone.replace(/\D/g, '');
-  const isPhoneValid = numericPhone.length === 11;
+  const isPhoneValid = !formData.isAttending || numericPhone.length === 11;
   const isChildrenSelected = !formData.isAttending || hasChildren !== null;
   const isFormReady = isNameValid && isPhoneValid && isChildrenSelected;
 
@@ -515,30 +515,32 @@ const Envelope: React.FC = () => {
                         )}
                       </div>
 
-                      <div className="rsvp-field-row">
-                        <div className="rsvp-field-group">
-                          <label>WhatsApp / Telefone</label>
-                          <input
-                            type="tel"
-                            placeholder="(00) 00000-0000"
-                            value={formData.phone}
-                            onChange={e => setFormData({ ...formData, phone: maskPhone(e.target.value) })}
-                            required
-                          />
-                          {!isPhoneValid && numericPhone.length > 0 && (
-                            <span style={{ fontSize: '0.65rem', color: '#ff8a8a', marginTop: '0.3rem' }}>Informe o DDD + 9 dígitos.</span>
-                          )}
+                      {formData.isAttending && (
+                        <div className="rsvp-field-row">
+                          <div className="rsvp-field-group">
+                            <label>WhatsApp / Telefone *</label>
+                            <input
+                              type="tel"
+                              placeholder="(00) 00000-0000"
+                              value={formData.phone}
+                              onChange={e => setFormData({ ...formData, phone: maskPhone(e.target.value) })}
+                              required
+                            />
+                            {!isPhoneValid && numericPhone.length > 0 && (
+                              <span style={{ fontSize: '0.65rem', color: '#ff8a8a', marginTop: '0.3rem' }}>Informe o DDD + 9 dígitos.</span>
+                            )}
+                          </div>
+                          <div className="rsvp-field-group">
+                            <label>E-mail (Opcional)</label>
+                            <input
+                              type="email"
+                              placeholder="seu@email.com"
+                              value={formData.email}
+                              onChange={e => setFormData({ ...formData, email: e.target.value })}
+                            />
+                          </div>
                         </div>
-                        <div className="rsvp-field-group">
-                          <label>E-mail (Opcional)</label>
-                          <input
-                            type="email"
-                            placeholder="seu@email.com"
-                            value={formData.email}
-                            onChange={e => setFormData({ ...formData, email: e.target.value })}
-                          />
-                        </div>
-                      </div>
+                      )}
 
                       {formData.isAttending && (
                         <div className="rsvp-children-section">

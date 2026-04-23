@@ -22,6 +22,7 @@ const AdminPage: React.FC = () => {
   const [pixData, setPixData] = useState({ key: '', type: 'email', holder: '' });
 
   const [guestSearch, setGuestSearch] = useState('');
+  const [guestFilter, setGuestFilter] = useState<'all' | 'yes' | 'no'>('all');
   const [giftSearchTerm, setGiftSearchTerm] = useState('');
   const [adminCategoryFilter, setAdminCategoryFilter] = useState('Todas');
   const [showAdminFilters, setShowAdminFilters] = useState(false);
@@ -165,14 +166,27 @@ const AdminPage: React.FC = () => {
   };
 
   const filteredGuests = useMemo(() => {
-    if (!guestSearch.trim()) return confirmations;
-    const q = guestSearch.toLowerCase();
-    return confirmations.filter(c =>
-      c.fullName.toLowerCase().includes(q) ||
-      c.email?.toLowerCase().includes(q) ||
-      c.phone.includes(q)
-    );
-  }, [confirmations, guestSearch]);
+    let result = confirmations;
+
+    // Filter by presence
+    if (guestFilter === 'yes') {
+      result = result.filter(c => c.isAttending);
+    } else if (guestFilter === 'no') {
+      result = result.filter(c => !c.isAttending);
+    }
+
+    // Filter by search
+    if (guestSearch.trim()) {
+      const q = guestSearch.toLowerCase();
+      result = result.filter(c =>
+        c.fullName.toLowerCase().includes(q) ||
+        c.email?.toLowerCase().includes(q) ||
+        c.phone.includes(q)
+      );
+    }
+
+    return result;
+  }, [confirmations, guestSearch, guestFilter]);
 
   const filteredGifts = useMemo(() => {
     let result = gifts;
@@ -202,6 +216,7 @@ const AdminPage: React.FC = () => {
       adults, 
       kids, 
       total: adults + kids,
+      attendingCount: attending.length,
       notAttending: notAttending.length 
     };
   }, [confirmations]);
@@ -242,15 +257,38 @@ const AdminPage: React.FC = () => {
         {tab === 'guests' && (
           <div className="reveal active">
             <div className="adm-stats-grid">
-              <div className="adm-stat-card"><span className="adm-stat-label">Total Pessoas</span><span className="adm-stat-value">{stats.total}</span></div>
-              <div className="adm-stat-card"><span className="adm-stat-label">Adultos</span><span className="adm-stat-value">{stats.adults}</span></div>
+              <div className="adm-stat-card"><span className="adm-stat-label">Total Convidados</span><span className="adm-stat-value">{stats.total}</span></div>
+              <div className="adm-stat-card"><span className="adm-stat-label">Famílias (Vão)</span><span className="adm-stat-value" style={{ color: '#25D366' }}>{stats.attendingCount}</span></div>
+              <div className="adm-stat-card"><span className="adm-stat-label">Famílias (Não Vão)</span><span className="adm-stat-value" style={{ color: '#991b1b' }}>{stats.notAttending}</span></div>
               <div className="adm-stat-card"><span className="adm-stat-label">Crianças</span><span className="adm-stat-value">{stats.kids}</span></div>
-              <div className="adm-stat-card"><span className="adm-stat-label">Não Vão</span><span className="adm-stat-value" style={{ color: '#991b1b' }}>{stats.notAttending}</span></div>
             </div>
 
-            <div className="adm-search-wrap">
-              <Search size={22} />
-              <input className="adm-search-input" placeholder="Pesquisar convidados..." value={guestSearch} onChange={e => setGuestSearch(e.target.value)} />
+            <div className="adm-guest-filters-bar">
+              <div className="adm-search-wrap" style={{ flex: 1, marginBottom: 0 }}>
+                <Search size={22} />
+                <input className="adm-search-input" placeholder="Pesquisar convidados..." value={guestSearch} onChange={e => setGuestSearch(e.target.value)} />
+              </div>
+
+              <div className="adm-filter-group">
+                <button 
+                  className={`adm-filter-btn ${guestFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => setGuestFilter('all')}
+                >
+                  Todos <span>{confirmations.length}</span>
+                </button>
+                <button 
+                  className={`adm-filter-btn ${guestFilter === 'yes' ? 'active' : ''}`}
+                  onClick={() => setGuestFilter('yes')}
+                >
+                  Vão <span>{stats.attendingCount}</span>
+                </button>
+                <button 
+                  className={`adm-filter-btn ${guestFilter === 'no' ? 'active' : ''}`}
+                  onClick={() => setGuestFilter('no')}
+                >
+                  Não Vão <span>{stats.notAttending}</span>
+                </button>
+              </div>
             </div>
 
             <div className="adm-list">
@@ -263,7 +301,11 @@ const AdminPage: React.FC = () => {
                       <div className="adm-guest-info">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
                           <h4 style={{ opacity: isSent || !c.isAttending ? 0.4 : 1 }}>{c.fullName}</h4>
-                          {!c.isAttending && <span className="adm-badge-no">Não irá</span>}
+                          {c.isAttending ? (
+                            <span className="adm-status-badge yes">SIM</span>
+                          ) : (
+                            <span className="adm-status-badge no">NÃO</span>
+                          )}
                           {isSent && <button onClick={(e) => { e.stopPropagation(); setSentReminders(prev => prev.filter(id => id !== c.id)); }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><Check size={16} color="#25D366" /></button>}
                         </div>
                         {c.isAttending ? (
@@ -272,7 +314,7 @@ const AdminPage: React.FC = () => {
                           <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>Avisou que não poderá ir</span>
                         )}
                       </div>
-                      <div className="adm-row-actions" onClick={e => e.stopPropagation()}>
+                      <div className="adm-row-actions hide-mobile" onClick={e => e.stopPropagation()}>
                         <button className="adm-btn-icon wa" style={{ background: isSent ? '#f0f0f0' : '#25D366' }} onClick={() => openWhatsAppRemind(c.id, c.phone, c.fullName)}>
                           <MessageCircle size={20} fill={isSent ? '#ccc' : 'white'} />
                         </button>
@@ -284,13 +326,29 @@ const AdminPage: React.FC = () => {
                             .then(() => { loadAll(); closeDialog(); })
                             .catch(err => { 
                               console.error(err);
-                              showInfo('Erro ao remover', 'Não foi possível excluir o convidado. Verifique as permissões do banco de dados.');
+                              showInfo('Erro ao remover', 'Não foi possível excluir o convidado.');
                             });
                         })}><Trash2 size={20} /></button>
                       </div>
                     </div>
                     {isExpanded && (
                       <div className="adm-row-detail" onClick={e => e.stopPropagation()}>
+                        <div className="adm-row-actions show-mobile" style={{ gridColumn: '1 / -1', marginBottom: '1rem', justifyContent: 'flex-start' }}>
+                          <button className="adm-btn-icon wa" style={{ background: isSent ? '#f0f0f0' : '#25D366' }} onClick={() => openWhatsAppRemind(c.id, c.phone, c.fullName)}>
+                            <MessageCircle size={20} fill={isSent ? '#ccc' : 'white'} />
+                          </button>
+                          <button className="adm-btn-icon" style={{ background: '#f5f5f4', color: '#2D3820' }} onClick={() => handleEditGuest(c)}>
+                            <Pencil size={18} />
+                          </button>
+                          <button className="adm-btn-icon trash" onClick={() => showConfirm('Excluir Convidado', `Deseja realmente remover ${c.fullName}?`, () => { 
+                            api.removeConfirmation(c.id)
+                              .then(() => { loadAll(); closeDialog(); })
+                              .catch(err => { 
+                                console.error(err);
+                                showInfo('Erro ao remover', 'Não foi possível excluir o convidado.');
+                              });
+                          })}><Trash2 size={20} /></button>
+                        </div>
                         <div className="adm-detail-item"><label><Mail size={10} /> E-mail</label><p>{c.email || '—'}</p></div>
                         <div className="adm-detail-item"><label><Phone size={10} /> Telefone</label><p>{maskPhone(c.phone)}</p></div>
                         {c.children && c.children.length > 0 && (
