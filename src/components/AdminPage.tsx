@@ -149,7 +149,7 @@ const AdminPage: React.FC = () => {
     setGiftSubtitle(g.subtitle || '');
     setGiftBrand(g.brand || '');
     setGiftCategory(g.categoryId || '');
-    setGiftPrice(maskCurrency((g.price * 100).toString()));
+    setGiftPrice(maskCurrency(Math.round(g.price * 100).toString()));
     setGiftImageUrl(g.imageUrl);
     setGiftBuyUrl(g.buyUrl || '');
     setIsFeatured(g.isFeatured || false);
