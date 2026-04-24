@@ -22,7 +22,15 @@ const GiftsPublicPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [addressCopied, setAddressCopied] = useState(false);
 
-  const DELIVERY_ADDRESS = `Luan & Laís - Rua das Oliveiras, 711 — Apto 22 - Bairro Jardim dos Noivos, São Paulo — SP - CEP: 01234-567`;
+  const DELIVERY_DATA = {
+    recipient: "Laís de Souza Santos",
+    line1: "Rua das Oliveiras, 711 — Apto 22",
+    line2: "Av. Antônio Trajano, 1405 - Centro",
+    city: "Três Lagoas - MS",
+    zip: "79601-001"
+  };
+
+  const DELIVERY_ADDRESS_STR = `${DELIVERY_DATA.recipient} - ${DELIVERY_DATA.line1} - ${DELIVERY_DATA.line2}, ${DELIVERY_DATA.city} - CEP: ${DELIVERY_DATA.zip}`;
 
   // Lógica de Filtragem e Ordenação (Movido para cima para ser usado no observer)
   const filteredGifts = useMemo(() => {
@@ -110,7 +118,7 @@ const GiftsPublicPage: React.FC = () => {
   };
 
   const handleCopyAddress = () => {
-    navigator.clipboard.writeText(DELIVERY_ADDRESS);
+    navigator.clipboard.writeText(DELIVERY_ADDRESS_STR);
     setAddressCopied(true);
     setTimeout(() => setAddressCopied(false), 2000);
   };
@@ -211,7 +219,7 @@ const GiftsPublicPage: React.FC = () => {
                 const priceParts = formatPrice(g.price);
                 const isLast = idx === visibleGifts.length - 1;
                 return (
-                  <div key={g.id} className={`gp-card ${g.isBought ? 'bought' : ''}`} ref={isLast ? lastElementRef : null}>
+                  <div key={g.id} className={`gp-card ${g.isBought ? 'bought' : ''} `} ref={isLast ? lastElementRef : null}>
                     {g.isFeatured && <div className="gp-badge"><Star size={10} fill="white" /> Sugestão dos Noivos</div>}
                     <div className="gp-card-img">
                       {g.imageUrl ? <img src={g.imageUrl} alt={g.title} loading="lazy" /> : <Gift size={48} strokeWidth={0.5} opacity={0.2} />}
@@ -279,28 +287,30 @@ const GiftsPublicPage: React.FC = () => {
                 <MapPin size={24} color="var(--mk-accent)" style={{ flexShrink: 0, marginTop: '4px' }} />
                 <div>
                   <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: 'var(--mk-accent)', textTransform: 'uppercase', letterSpacing: '1px' }}>Endereço para Entrega</h4>
-                  <p style={{ margin: 0, fontSize: '0.85rem', lineHeight: '1.5', color: '#444' }}>
-                    <strong>Luan & Laís</strong><br />
-                    Rua das Oliveiras, 711 — Apto 22<br />
-                    Bairro Jardim dos Noivos, São Paulo — SP<br />
-                    CEP: 01234-567
-                  </p>
-                  <button 
-                    onClick={handleCopyAddress} 
+                  {/* <p style={{ margin: 0, fontSize: '0.85rem', lineHeight: '1.5', color: '#444' }}>
+                    <strong>{DELIVERY_DATA.recipient}</strong><br />
+                    {DELIVERY_DATA.line1}<br />
+                    {DELIVERY_DATA.line2}<br />
+                    {DELIVERY_DATA.city}<br />
+                    CEP: {DELIVERY_DATA.zip}
+                  </p> */}
+                  <h2>EM CONSTRUÇÃO</h2>
+                  <button
+                    onClick={handleCopyAddress}
                     type="button"
-                    style={{ 
+                    style={{
                       marginTop: '1.2rem',
                       width: '100%',
-                      background: 'white', 
-                      border: '1px solid var(--mk-accent)', 
-                      color: 'var(--mk-accent)', 
-                      cursor: 'pointer', 
-                      display: 'flex', 
-                      alignItems: 'center', 
+                      background: 'white',
+                      border: '1px solid var(--mk-accent)',
+                      color: 'var(--mk-accent)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
                       justifyContent: 'center',
                       gap: '8px',
-                      fontSize: '0.8rem', 
-                      fontWeight: 700, 
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
                       padding: '0.6rem',
                       borderRadius: '8px',
                       transition: 'all 0.2s ease'
