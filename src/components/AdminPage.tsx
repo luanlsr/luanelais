@@ -24,6 +24,7 @@ const AdminPage: React.FC = () => {
   const [guestSearch, setGuestSearch] = useState('');
   const [guestFilter, setGuestFilter] = useState<'all' | 'yes' | 'no'>('all');
   const [giftSearchTerm, setGiftSearchTerm] = useState('');
+  const [giftFilter, setGiftFilter] = useState<'all' | 'bought' | 'available'>('all');
   const [adminCategoryFilter, setAdminCategoryFilter] = useState('Todas');
   const [showAdminFilters, setShowAdminFilters] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -190,6 +191,14 @@ const AdminPage: React.FC = () => {
 
   const filteredGifts = useMemo(() => {
     let result = gifts;
+
+    // Filter by status
+    if (giftFilter === 'bought') {
+      result = result.filter(g => g.isBought);
+    } else if (giftFilter === 'available') {
+      result = result.filter(g => !g.isBought);
+    }
+
     if (giftSearchTerm.trim()) {
       const q = giftSearchTerm.toLowerCase();
       result = result.filter(g => 
@@ -202,7 +211,7 @@ const AdminPage: React.FC = () => {
       result = result.filter(g => g.categoryId === adminCategoryFilter);
     }
     return result;
-  }, [gifts, giftSearchTerm, adminCategoryFilter]);
+  }, [gifts, giftSearchTerm, adminCategoryFilter, giftFilter]);
 
   const stats = useMemo(() => {
     const attending = confirmations.filter(c => c.isAttending);
@@ -379,10 +388,32 @@ const AdminPage: React.FC = () => {
           <div className="reveal active">
             <div className="adm-section-header">
               <div className="adm-section-title">
-                <h3 style={{ margin: 0, fontWeight: 500, fontFamily: 'var(--font-serif)', fontSize: '1.8rem' }}>Presentes ({filteredGifts.length})</h3>
-                <div className="adm-header-actions">
+                <div className="adm-header-actions" style={{ marginLeft: 'auto' }}>
                    <button className="adm-filter-toggle" onClick={() => setShowAdminFilters(!showAdminFilters)}><Search size={18} /> Filtrar</button>
                    <button className="adm-btn-submit" onClick={() => { resetGiftForm(); setIsGiftModalOpen(true); }}><Plus /> <span className="hide-mobile">Novo</span></button>
+                </div>
+              </div>
+
+              <div className="adm-guest-filters-bar" style={{ marginBottom: '1.5rem', background: 'transparent', boxShadow: 'none', padding: 0, border: 'none' }}>
+                <div className="adm-filter-group" style={{ width: 'auto' }}>
+                  <button 
+                    className={`adm-filter-btn ${giftFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => setGiftFilter('all')}
+                  >
+                    Todos <span>{gifts.length}</span>
+                  </button>
+                  <button 
+                    className={`adm-filter-btn ${giftFilter === 'bought' ? 'active' : ''}`}
+                    onClick={() => setGiftFilter('bought')}
+                  >
+                    Ganhos <span>{gifts.filter(g => g.isBought).length}</span>
+                  </button>
+                  <button 
+                    className={`adm-filter-btn ${giftFilter === 'available' ? 'active' : ''}`}
+                    onClick={() => setGiftFilter('available')}
+                  >
+                    Disponíveis <span>{gifts.filter(g => !g.isBought).length}</span>
+                  </button>
                 </div>
               </div>
               
