@@ -23,7 +23,7 @@ const GiftsPublicPage: React.FC = () => {
   const [addressCopied, setAddressCopied] = useState(false);
 
   const DELIVERY_DATA = {
-    recipient: "Luan & Laís",
+    recipient: "Laís & Luan",
     line1: "R. Alfredo Justino, 2795",
     line2: "Jardim Alvorada",
     city: "Três Lagoas - MS",
@@ -167,7 +167,7 @@ const GiftsPublicPage: React.FC = () => {
         </Link>
         <div className="gp-header-content">
           <h1>Lista de Presentes</h1>
-          <p>Luan & Laís · 07.11.2026</p>
+          <p>Laís & Luan · 07.11.2026</p>
         </div>
 
         <div className="gp-tools">
@@ -376,7 +376,7 @@ const GiftsPublicPage: React.FC = () => {
 
       <footer className="gp-footer">
         <Heart size={16} fill="#c5a059" color="#c5a059" style={{ marginBottom: '1rem' }} />
-        <p>Luan & Laís · 2026</p>
+        <p>Laís & Luan · 2026</p>
       </footer>
     </div>
   );

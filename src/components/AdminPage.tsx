@@ -136,7 +136,7 @@ const AdminPage: React.FC = () => {
     const cleanPhone = phone.replace(/\D/g, '');
     const finalPhone = cleanPhone.startsWith('55') ? cleanPhone : '55' + cleanPhone;
     const firstName = name.split(' ')[0];
-    const message = encodeURIComponent(`Olá ${firstName}, tudo bem? Estamos muito felizes com a chegada do nosso casamento! 🥂\n\nPassando para confirmar se você e seus dependentes registrados ainda poderão comparecer no dia 07/11/2026.\n\nPoderia nos confirmar por aqui? Um abraço, de Luan & Laís.`);
+    const message = encodeURIComponent(`Olá ${firstName}, tudo bem? Estamos muito felizes com a chegada do nosso casamento! 🥂\n\nPassando para confirmar se você e seus dependentes registrados ainda poderão comparecer no dia 07/11/2026.\n\nPoderia nos confirmar por aqui? Um abraço, de Laís & Luan.`);
     window.open(`https://wa.me/${finalPhone}?text=${message}`, '_blank');
     if (!sentReminders.includes(id)) {
       setSentReminders(prev => [...prev, id]);

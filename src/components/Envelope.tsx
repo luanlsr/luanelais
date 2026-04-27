@@ -229,7 +229,7 @@ const Envelope: React.FC = () => {
               <div className="hero-content-wrap">
                 <span className="hero-sup">SAVE THE DATE</span>
                 <h1 className="hero-names">
-                  Luan <br /> <span>&</span> Laís
+                  Laís <br /> <span>&</span> Luan
                 </h1>
 
                 <div className="hero-date-portal">
@@ -383,7 +383,7 @@ const Envelope: React.FC = () => {
           </div>
 
           <footer className="inv-footer-portal" style={{ background: '#2D3820', padding: '6rem 2rem', textAlign: 'center', color: 'white' }}>
-            <h2 style={{ fontFamily: 'var(--font-script)', fontSize: '3.5rem', marginBottom: '1rem', opacity: 0.9 }}>Luan & Laís</h2>
+            <h2 style={{ fontFamily: 'var(--font-script)', fontSize: '3.5rem', marginBottom: '1rem', opacity: 0.9 }}>Laís & Luan</h2>
             <p style={{ fontFamily: 'var(--font-serif)', fontSize: '0.7rem', letterSpacing: '4px', opacity: 0.5, textTransform: 'uppercase' }}>07 de Novembro de 2026</p>
           </footer>
         </div>
@@ -423,9 +423,9 @@ const Envelope: React.FC = () => {
             >
               <div className="env-top-content">
                 <div className="env-names-block">
-                  <span className="env-name-script">Luan</span>
-                  <span className="env-amp-script">&</span>
                   <span className="env-name-script">Laís</span>
+                  <span className="env-amp-script">&</span>
+                  <span className="env-name-script">Luan</span>
                 </div>
               </div>
             </motion.div>

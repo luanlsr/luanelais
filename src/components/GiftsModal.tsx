@@ -149,7 +149,7 @@ const GiftsModal: React.FC<GiftsModalProps> = ({ isOpen, onClose }) => {
               </button>
               <div className="gm-header-content">
                 <h1>Lista de Presentes</h1>
-                <p>Luan & Laís · 07.11.2026</p>
+                <p>Laís & Luan · 07.11.2026</p>
               </div>
 
               <div className="gm-tools">
@@ -241,7 +241,7 @@ const GiftsModal: React.FC<GiftsModalProps> = ({ isOpen, onClose }) => {
 
             <footer className="gm-footer">
               <Heart size={16} fill="#c5a059" color="#c5a059" style={{ marginBottom: '0.5rem' }} />
-              <p>Luan & Laís · 2026</p>
+              <p>Laís & Luan · 2026</p>
             </footer>
           </motion.div>
         </motion.div>

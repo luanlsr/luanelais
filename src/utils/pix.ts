@@ -3,7 +3,7 @@
  * Based on EMV Co standards
  */
 
-export function generatePixPayload(key: string, merchantName: string = 'LUAN E LAIS', city: string = 'SAO PAULO'): string {
+export function generatePixPayload(key: string, merchantName: string = 'LAIS E LUAN', city: string = 'SAO PAULO'): string {
   try {
     let cleanKey = key.trim();
 
