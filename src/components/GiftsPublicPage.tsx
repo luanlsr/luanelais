@@ -329,13 +329,23 @@ const GiftsPublicPage: React.FC = () => {
                   type="text"
                   className="gp-input"
                   placeholder="Seu nome completo"
-                  autoFocus
                   required
                   value={guestName}
                   onChange={e => setGuestName(e.target.value)}
                   style={{ width: '100%', padding: '1rem', borderRadius: '12px', border: '1px solid #ddd', marginBottom: '1.2rem' }}
                 />
-                <button type="submit" disabled={submitting} className="gp-buy-btn" style={{ width: '100%', margin: 0, height: '54px' }}>
+                <button 
+                  type="submit" 
+                  disabled={submitting || guestName.trim().length < 6 || guestName.trim().split(' ').length < 2} 
+                  className="gp-buy-btn" 
+                  style={{ 
+                    width: '100%', 
+                    margin: 0, 
+                    height: '54px',
+                    opacity: (submitting || guestName.trim().length < 6 || guestName.trim().split(' ').length < 2) ? 0.5 : 1,
+                    cursor: (submitting || guestName.trim().length < 6 || guestName.trim().split(' ').length < 2) ? 'not-allowed' : 'pointer'
+                  }}
+                >
                   {submitting ? 'Processando...' : 'Confirmar e Ver Link do Produto'}
                 </button>
               </form>
