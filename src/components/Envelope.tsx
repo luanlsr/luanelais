@@ -287,10 +287,10 @@ const Envelope: React.FC = () => {
               </div>
               <div className="inv-sec-body">
                 <AnimatePresence mode="wait">
-                    <div className="inv-rsvp-idle">
-                      <p className="inv-rsvp-intro">Por favor, responda ao convite preenchendo o formulário abaixo para nos ajudar no planejamento.</p>
-                      <button onClick={() => setIsRSVPModalOpen(true)} className="inv-btn-solid">Responder Convite</button>
-                    </div>
+                  <div className="inv-rsvp-idle">
+                    <p className="inv-rsvp-intro">Por favor, responda ao convite preenchendo o formulário abaixo para nos ajudar no planejamento.</p>
+                    <button onClick={() => setIsRSVPModalOpen(true)} className="inv-btn-solid">Responder Convite</button>
+                  </div>
                   {rsvpStatus === 'loading' && (
                     <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="inv-loading">
                       <div className="inv-spinner" /><p>Salvando com carinho...</p>
@@ -464,7 +464,7 @@ const Envelope: React.FC = () => {
       <AnimatePresence>
         {isRSVPModalOpen && (
           <div className="rsvp-modal-overlay" onClick={() => setIsRSVPModalOpen(false)}>
-            <motion.div 
+            <motion.div
               className="rsvp-modal-content"
               initial={{ opacity: 0, y: '100%' }}
               animate={{ opacity: 1, y: 0 }}
@@ -476,7 +476,7 @@ const Envelope: React.FC = () => {
                 <h3>Responder Convite</h3>
                 <button className="rsvp-close-btn" onClick={() => setIsRSVPModalOpen(false)}><X size={24} /></button>
               </div>
-              
+
               <form onSubmit={handleConfirm} className="inv-rsvp-form">
                 {(() => {
                   return (
@@ -613,10 +613,10 @@ const Envelope: React.FC = () => {
                   type="button"
                   onClick={() => (document.querySelector('.inv-rsvp-form') as HTMLFormElement)?.requestSubmit()}
                   className="inv-btn-solid"
-                  style={{ 
-                    background: '#2D3820', 
-                    color: 'white', 
-                    opacity: isFormReady ? 1 : 0.5, 
+                  style={{
+                    background: '#2D3820',
+                    color: 'white',
+                    opacity: isFormReady ? 1 : 0.5,
                     cursor: isFormReady ? 'pointer' : 'not-allowed',
                     width: '100%'
                   }}

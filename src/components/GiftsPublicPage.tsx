@@ -23,11 +23,11 @@ const GiftsPublicPage: React.FC = () => {
   const [addressCopied, setAddressCopied] = useState(false);
 
   const DELIVERY_DATA = {
-    recipient: "Laís de Souza Santos",
-    line1: "Rua das Oliveiras, 711 — Apto 22",
-    line2: "Av. Antônio Trajano, 1405 - Centro",
+    recipient: "Luan & Laís",
+    line1: "R. Alfredo Justino, 2795",
+    line2: "Jardim Alvorada",
     city: "Três Lagoas - MS",
-    zip: "79601-001"
+    zip: "79600-100"
   };
 
   const DELIVERY_ADDRESS_STR = `${DELIVERY_DATA.recipient} - ${DELIVERY_DATA.line1} - ${DELIVERY_DATA.line2}, ${DELIVERY_DATA.city} - CEP: ${DELIVERY_DATA.zip}`;
@@ -287,14 +287,13 @@ const GiftsPublicPage: React.FC = () => {
                 <MapPin size={24} color="var(--mk-accent)" style={{ flexShrink: 0, marginTop: '4px' }} />
                 <div>
                   <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: 'var(--mk-accent)', textTransform: 'uppercase', letterSpacing: '1px' }}>Endereço para Entrega</h4>
-                  {/* <p style={{ margin: 0, fontSize: '0.85rem', lineHeight: '1.5', color: '#444' }}>
+                  <p style={{ margin: 0, fontSize: '0.85rem', lineHeight: '1.5', color: '#444' }}>
                     <strong>{DELIVERY_DATA.recipient}</strong><br />
                     {DELIVERY_DATA.line1}<br />
                     {DELIVERY_DATA.line2}<br />
                     {DELIVERY_DATA.city}<br />
                     CEP: {DELIVERY_DATA.zip}
-                  </p> */}
-                  <h2>EM CONSTRUÇÃO</h2>
+                  </p>
                   <button
                     onClick={handleCopyAddress}
                     type="button"
