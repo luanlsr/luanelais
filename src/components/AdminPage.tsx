@@ -4,7 +4,6 @@ import { api, type Confirmation, type Gift as GiftType, type Category } from '..
 import { maskPixKey, unmaskValue, maskPhone, maskCurrency, parseCurrency } from '../utils/pix';
 import './AdminPage.css';
 
-const ITEMS_PER_PAGE = 15;
 
 type Tab = 'pix' | 'guests' | 'gifts';
 

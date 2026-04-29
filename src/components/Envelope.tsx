@@ -35,10 +35,9 @@ const Envelope: React.FC = () => {
     email: '',
     isAttending: true,
   });
-  const [hasSpouse, setHasSpouse] = useState<boolean | null>(null);
-  const [spouseName, setSpouseName] = useState('');
   const [hasChildren, setHasChildren] = useState<boolean | null>(null);
   const [children, setChildren] = useState<{ name: string; age: string }[]>([]);
+
 
   // ── Pix data ──
   const [pixData, setPixData] = useState({ key: '', type: 'email', holder: '' });
@@ -135,6 +134,7 @@ const Envelope: React.FC = () => {
     setChildren(newChildren);
   };
 
+
   const handleConfirm = async (e: React.FormEvent) => {
     e.preventDefault();
     setRsvpStatus('loading');
@@ -152,16 +152,6 @@ const Envelope: React.FC = () => {
         isAttending: formData.isAttending,
         children: formData.isAttending ? formattedChildren : []
       });
-
-      if (formData.isAttending && hasSpouse && spouseName.trim() !== '') {
-        await api.submitRSVP({
-          fullName: spouseName.trim(),
-          phone: formData.phone,
-          email: formData.email,
-          isAttending: true,
-          children: []
-        });
-      }
 
       setRsvpStatus('success');
       confetti({
@@ -193,9 +183,7 @@ const Envelope: React.FC = () => {
   const numericPhone = formData.phone.replace(/\D/g, '');
   const isPhoneValid = !formData.isAttending || numericPhone.length === 11;
   const isChildrenSelected = !formData.isAttending || hasChildren !== null;
-  const isSpouseSelected = !formData.isAttending || hasSpouse !== null;
-  const isSpouseValid = !formData.isAttending || !hasSpouse || spouseName.trim().length > 3;
-  const isFormReady = isNameValid && isPhoneValid && isChildrenSelected && isSpouseSelected && isSpouseValid;
+  const isFormReady = isNameValid && isPhoneValid && isChildrenSelected;
 
   return (
     <div className="env-wrapper">
@@ -307,14 +295,16 @@ const Envelope: React.FC = () => {
               <div className="inv-sec-body">
                 <AnimatePresence mode="wait">
                   <div className="inv-rsvp-idle">
-                    <p className="inv-rsvp-intro">Por favor, responda ao convite preenchendo o formulário abaixo para nos ajudar no planejamento.</p>
+                    <p className="inv-rsvp-intro">
+                      Por favor, confirme sua presença preenchendo o formulário abaixo. 
+                      <br/><br/>
+                      <strong>Atenção:</strong> O preenchimento é individual. Caso o seu convite seja extensivo a mais pessoas, pedimos que envie uma resposta separadamente para <strong>cada pessoa</strong>. Filhos (até 12 anos) podem ser adicionados ao final do formulário.
+                    </p>
                     <button onClick={() => {
                       setRsvpStatus('idle');
                       setFormData({ fullName: '', phone: '', email: '', isAttending: true });
                       setChildren([]);
                       setHasChildren(null);
-                      setSpouseName('');
-                      setHasSpouse(null);
                       setIsRSVPModalOpen(true);
                     }} className="inv-btn-solid">Responder Convite</button>
                   </div>
@@ -333,8 +323,6 @@ const Envelope: React.FC = () => {
                         setFormData({ fullName: '', phone: '', email: '', isAttending: true });
                         setChildren([]);
                         setHasChildren(null);
-                        setSpouseName('');
-                        setHasSpouse(null);
                       }} className="inv-btn-ghost">Confirmar outra pessoa</button>
                     </motion.div>
                   )}
@@ -534,10 +522,10 @@ const Envelope: React.FC = () => {
                       </div>
 
                       <div className="rsvp-field-group">
-                        <label>Nome Completo (Apenas o seu)</label>
+                        <label>Nome Completo</label>
                         <input
                           type="text"
-                          placeholder="Ex: João da Silva..."
+                          placeholder="Ex: João da Silva"
                           value={formData.fullName}
                           onChange={e => setFormData({ ...formData, fullName: e.target.value })}
                           required
@@ -575,66 +563,32 @@ const Envelope: React.FC = () => {
                       )}
 
                       {formData.isAttending && (
-                        <>
-                          <div className="rsvp-children-section">
-                            <label className="children-question-label">Irá levar Cônjuge/Namorado(a)? *</label>
-                            <div className="children-radio-group">
-                              <button
-                                type="button"
-                                className={`radio-option ${hasSpouse === true ? 'active' : ''}`}
-                                onClick={() => setHasSpouse(true)}
-                              >
-                                Sim
-                              </button>
-                              <button
-                                type="button"
-                                className={`radio-option ${hasSpouse === false ? 'active' : ''}`}
-                                onClick={() => {
-                                  setHasSpouse(false);
-                                  setSpouseName('');
-                                }}
-                              >
-                                Não
-                              </button>
-                            </div>
-                            {hasSpouse === true && (
-                              <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: '0.8rem' }}>
-                                <input
-                                  type="text"
-                                  placeholder="Nome completo do acompanhante"
-                                  value={spouseName}
-                                  onChange={e => setSpouseName(e.target.value)}
-                                  required
-                                  style={{ width: '100%' }}
-                                />
-                              </motion.div>
-                            )}
+                        <div className="rsvp-children-section" style={{ marginTop: '1.5rem' }}>
+                          <label className="children-question-label">
+                            Irá levar filhos (até 12 anos)?
+                          </label>
+                          <div className="children-radio-group">
+                            <button
+                              type="button"
+                              className={`radio-option ${hasChildren === true ? 'active' : ''}`}
+                              onClick={() => {
+                                setHasChildren(true);
+                                if (children.length === 0) addChild();
+                              }}
+                            >
+                              Sim
+                            </button>
+                            <button
+                              type="button"
+                              className={`radio-option ${hasChildren === false ? 'active' : ''}`}
+                              onClick={() => {
+                                setHasChildren(false);
+                                setChildren([]);
+                              }}
+                            >
+                              Não
+                            </button>
                           </div>
-
-                          <div className="rsvp-children-section" style={{ marginTop: '1.5rem' }}>
-                            <label className="children-question-label">Irá levar filhos? *</label>
-                            <div className="children-radio-group">
-                              <button
-                                type="button"
-                                className={`radio-option ${hasChildren === true ? 'active' : ''}`}
-                                onClick={() => {
-                                  setHasChildren(true);
-                                  if (children.length === 0) addChild();
-                                }}
-                              >
-                                Sim
-                              </button>
-                              <button
-                                type="button"
-                                className={`radio-option ${hasChildren === false ? 'active' : ''}`}
-                                onClick={() => {
-                                  setHasChildren(false);
-                                  setChildren([]);
-                                }}
-                              >
-                                Não
-                              </button>
-                            </div>
 
                           {hasChildren === true && (
                             <div className="rsvp-children-list">
@@ -654,7 +608,7 @@ const Envelope: React.FC = () => {
                                     style={{ flex: 2 }}
                                   />
                                   <input
-                                    placeholder="Idade (anos)"
+                                    placeholder="Idade"
                                     type="text"
                                     style={{ flex: 1, minWidth: '70px' }}
                                     value={child.age}
@@ -669,7 +623,6 @@ const Envelope: React.FC = () => {
                             </div>
                           )}
                         </div>
-                        </>
                       )}
 
                     </>
