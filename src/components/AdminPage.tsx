@@ -4,16 +4,11 @@ import { api, type Confirmation, type Gift as GiftType, type Category } from '..
 import { maskPixKey, unmaskValue, maskPhone, maskCurrency, parseCurrency } from '../utils/pix';
 import './AdminPage.css';
 
-const ADMIN_USER = 'luanelais';
-const ADMIN_PASS = '07112026';
 const ITEMS_PER_PAGE = 15;
 
 type Tab = 'pix' | 'guests' | 'gifts';
 
 const AdminPage: React.FC = () => {
-  const [authed, setAuthed] = useState(() => sessionStorage.getItem('admin_auth') === '1');
-  const [loginUser, setLoginUser] = useState('');
-  const [loginPass, setLoginPass] = useState('');
   const [tab, setTab] = useState<Tab>('gifts');
 
   const [confirmations, setConfirmations] = useState<Confirmation[]>([]);
@@ -88,8 +83,8 @@ const AdminPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (authed) loadAll();
-  }, [authed]);
+    loadAll();
+  }, []);
 
   const loadAll = async () => {
     try {
@@ -112,24 +107,6 @@ const AdminPage: React.FC = () => {
     const formatted = price.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
     const parts = formatted.split(',');
     return { main: parts[0], cents: parts[1] };
-  };
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (loginUser === ADMIN_USER && loginPass === ADMIN_PASS) {
-      sessionStorage.setItem('admin_auth', '1');
-      setAuthed(true);
-    } else {
-      showInfo('Acesso Negado', 'Usuário ou senha incorretos.');
-    }
-  };
-
-  const handleLogout = () => {
-    showConfirm('Sair do Painel', 'Deseja realmente encerrar sua sessão?', () => {
-      sessionStorage.removeItem('admin_auth');
-      setAuthed(false);
-      closeDialog();
-    });
   };
 
   const openWhatsAppRemind = (id: string, phone: string, name: string) => {
@@ -230,30 +207,10 @@ const AdminPage: React.FC = () => {
     };
   }, [confirmations]);
 
-  if (!authed) {
-    return (
-      <div className="adm-login-page">
-        <form className="adm-login-card" onSubmit={handleLogin}>
-          <h2>Acesso Admin</h2>
-          <div style={{ marginBottom: '2rem' }}>
-            <input className="adm-login-input" placeholder="Usuário" value={loginUser} onChange={e => setLoginUser(e.target.value)} />
-            <input className="adm-login-input" type="password" placeholder="Senha" value={loginPass} onChange={e => setLoginPass(e.target.value)} />
-          </div>
-          <button type="submit" className="adm-btn-submit" style={{ width: '100%', justifyContent: 'center' }}>Entrar no Painel</button>
-        </form>
-        {dialog.isOpen && <CustomDialog {...dialog} onClose={closeDialog} />}
-      </div>
-    );
-  }
-
   return (
     <div className="adm-wrap">
       <header className="adm-header">
         <h1>L & L · Management</h1>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button className="adm-btn-logout" onClick={() => setSentReminders([])}>Reset Checklist</button>
-          <button className="adm-btn-logout" onClick={handleLogout}><LogOut size={14} /> Sair</button>
-        </div>
       </header>
 
       <nav className="adm-tabs">
