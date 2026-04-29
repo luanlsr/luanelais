@@ -23,7 +23,8 @@ const AdminPage: React.FC = () => {
   const [adminCategoryFilter, setAdminCategoryFilter] = useState('Todas');
   const [showAdminFilters, setShowAdminFilters] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const [guestPage, setGuestPage] = useState(1);
+  const [guestsPerPage, setGuestsPerPage] = useState(10);
   const [sentReminders, setSentReminders] = useState<string[]>([]);
 
   /* ── CUSTOM DIALOG STATE ── */
@@ -143,6 +144,10 @@ const AdminPage: React.FC = () => {
     setIsGuestModalOpen(true);
   };
 
+  useEffect(() => {
+    setGuestPage(1);
+  }, [guestSearch, guestFilter, guestsPerPage]);
+
   const filteredGuests = useMemo(() => {
     let result = confirmations;
 
@@ -194,16 +199,24 @@ const AdminPage: React.FC = () => {
     const attending = confirmations.filter(c => c.isAttending);
     const notAttending = confirmations.filter(c => !c.isAttending);
     
-    const adults = attending.length;
+    let attendingTotal = 0;
     let kids = 0;
-    attending.forEach(c => kids += (c.children?.length || 0));
+    attending.forEach(c => {
+      attendingTotal += 1 + (c.children?.length || 0);
+      kids += (c.children?.length || 0);
+    });
+
+    let notAttendingTotal = 0;
+    notAttending.forEach(c => {
+      notAttendingTotal += 1 + (c.children?.length || 0);
+    });
     
     return { 
-      adults, 
       kids, 
-      total: adults + kids,
-      attendingCount: attending.length,
-      notAttending: notAttending.length 
+      total: attendingTotal,
+      attendingCount: attendingTotal,
+      notAttending: notAttendingTotal,
+      allGuestsTotal: attendingTotal + notAttendingTotal
     };
   }, [confirmations]);
 
@@ -224,8 +237,8 @@ const AdminPage: React.FC = () => {
           <div className="reveal active">
             <div className="adm-stats-grid">
               <div className="adm-stat-card"><span className="adm-stat-label">Total Convidados</span><span className="adm-stat-value">{stats.total}</span></div>
-              <div className="adm-stat-card"><span className="adm-stat-label">Famílias (Vão)</span><span className="adm-stat-value" style={{ color: '#25D366' }}>{stats.attendingCount}</span></div>
-              <div className="adm-stat-card"><span className="adm-stat-label">Famílias (Não Vão)</span><span className="adm-stat-value" style={{ color: '#991b1b' }}>{stats.notAttending}</span></div>
+              <div className="adm-stat-card"><span className="adm-stat-label">Convidados (Vão)</span><span className="adm-stat-value" style={{ color: '#25D366' }}>{stats.attendingCount}</span></div>
+              <div className="adm-stat-card"><span className="adm-stat-label">Convidados (Não Vão)</span><span className="adm-stat-value" style={{ color: '#991b1b' }}>{stats.notAttending}</span></div>
               <div className="adm-stat-card"><span className="adm-stat-label">Crianças</span><span className="adm-stat-value">{stats.kids}</span></div>
             </div>
 
@@ -240,7 +253,7 @@ const AdminPage: React.FC = () => {
                   className={`adm-filter-btn ${guestFilter === 'all' ? 'active' : ''}`}
                   onClick={() => setGuestFilter('all')}
                 >
-                  Todos <span>{confirmations.length}</span>
+                  Todos <span>{stats.allGuestsTotal}</span>
                 </button>
                 <button 
                   className={`adm-filter-btn ${guestFilter === 'yes' ? 'active' : ''}`}
@@ -258,7 +271,7 @@ const AdminPage: React.FC = () => {
             </div>
 
             <div className="adm-list">
-              {filteredGuests.slice(0, visibleCount).map(c => {
+              {filteredGuests.slice((guestPage - 1) * guestsPerPage, guestPage * guestsPerPage).map(c => {
                 const isExpanded = expandedId === c.id;
                 const isSent = sentReminders.includes(c.id);
                 return (
@@ -320,7 +333,7 @@ const AdminPage: React.FC = () => {
                         {c.children && c.children.length > 0 && (
                           <div className="adm-detail-item" style={{ gridColumn: '1 / -1' }}>
                             <label><Hash size={10} /> Dependentes</label>
-                            <div>{c.children.map((ch, i) => <span key={i} className="adm-badge-child">{ch.name} ({ch.age}a)</span>)}</div>
+                            <div>{c.children.map((ch, i) => <span key={i} className="adm-badge-child">{ch.name} ({ch.age})</span>)}</div>
                           </div>
                         )}
                       </div>
@@ -329,13 +342,45 @@ const AdminPage: React.FC = () => {
                 );
               })}
             </div>
-            {visibleCount < filteredGuests.length && (
-              <button
-                className="adm-load-more"
-                onClick={() => setVisibleCount(prev => prev + ITEMS_PER_PAGE)}
-              >
-                Mostrar Mais ({filteredGuests.length - visibleCount} restantes)
-              </button>
+            {filteredGuests.length > 0 && (
+              <div className="adm-pagination-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'white', borderRadius: '8px', border: '1px solid #e5e5e5', marginTop: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '0.85rem', color: '#666' }}>Itens por página:</span>
+                  <select 
+                    className="adm-login-input" 
+                    style={{ width: 'auto', padding: '0.4rem 2rem 0.4rem 0.8rem', height: 'auto', marginBottom: 0 }}
+                    value={guestsPerPage} 
+                    onChange={e => setGuestsPerPage(Number(e.target.value))}
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <span style={{ fontSize: '0.85rem', color: '#666' }}>
+                    Página {guestPage} de {Math.max(1, Math.ceil(filteredGuests.length / guestsPerPage))}
+                  </span>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button 
+                      className="adm-btn-submit" 
+                      style={{ padding: '0.4rem 1rem', opacity: guestPage === 1 ? 0.5 : 1, background: '#f5f5f4', color: '#2D3820' }}
+                      onClick={() => setGuestPage(p => Math.max(1, p - 1))}
+                      disabled={guestPage === 1}
+                    >
+                      Anterior
+                    </button>
+                    <button 
+                      className="adm-btn-submit" 
+                      style={{ padding: '0.4rem 1rem', opacity: guestPage >= Math.ceil(filteredGuests.length / guestsPerPage) ? 0.5 : 1, background: '#f5f5f4', color: '#2D3820' }}
+                      onClick={() => setGuestPage(p => Math.min(Math.ceil(filteredGuests.length / guestsPerPage), p + 1))}
+                      disabled={guestPage >= Math.ceil(filteredGuests.length / guestsPerPage)}
+                    >
+                      Próxima
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         )}
@@ -590,7 +635,7 @@ const AdminPage: React.FC = () => {
                             newC[idx].name = e.target.value;
                             setGuestChildren(newC);
                           }} required />
-                          <input className="adm-login-input" style={{ width: '60px' }} placeholder="Idade" value={child.age} onChange={e => {
+                          <input className="adm-login-input" style={{ width: '120px' }} placeholder="Vínculo / Idade" value={child.age} onChange={e => {
                             const newC = [...guestChildren];
                             newC[idx].age = e.target.value;
                             setGuestChildren(newC);
