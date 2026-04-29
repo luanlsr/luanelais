@@ -34,7 +34,8 @@ const GiftsPublicPage: React.FC = () => {
 
   // Lógica de Filtragem e Ordenação (Movido para cima para ser usado no observer)
   const filteredGifts = useMemo(() => {
-    let result = [...allGifts];
+    // Filtrar primeiro os presentes já comprados para não exibi-los
+    let result = allGifts.filter(g => !g.isBought);
 
     if (searchTerm) {
       result = result.filter(g =>
@@ -84,8 +85,18 @@ const GiftsPublicPage: React.FC = () => {
     });
   }, []);
 
-  const categories = useMemo(() => ['Todas', ...new Set(allGifts.map(g => g.category))].sort(), [allGifts]);
-  const brands = useMemo(() => ['Todas', ...new Set(allGifts.map(g => g.brand).filter(Boolean) as string[])].sort(), [allGifts]);
+  const availableGifts = useMemo(() => allGifts.filter(g => !g.isBought), [allGifts]);
+
+  const categories = useMemo(() => ['Todas', ...new Set(availableGifts.map(g => g.category))].sort(), [availableGifts]);
+  const brands = useMemo(() => ['Todas', ...new Set(availableGifts.map(g => g.brand).filter(Boolean) as string[])].sort(), [availableGifts]);
+
+  const availablePrices = useMemo(() => {
+    return {
+      under200: availableGifts.some(g => g.price <= 200),
+      between200And500: availableGifts.some(g => g.price > 200 && g.price <= 500),
+      over500: availableGifts.some(g => g.price > 500),
+    };
+  }, [availableGifts]);
 
   const visibleGifts = filteredGifts.slice(0, visibleCount);
 
@@ -151,9 +162,15 @@ const GiftsPublicPage: React.FC = () => {
         <h3>Preço</h3>
         <ul className="gp-sidebar-list">
           <li className={priceFilter === 'all' ? 'active' : ''} onClick={() => setPriceFilter('all')}>Todos</li>
-          <li className={priceFilter === 'under200' ? 'active' : ''} onClick={() => setPriceFilter('under200')}>Até R$ 200</li>
-          <li className={priceFilter === '200-500' ? 'active' : ''} onClick={() => setPriceFilter('200-500')}>R$ 200 - R$ 500</li>
-          <li className={priceFilter === 'over500' ? 'active' : ''} onClick={() => setPriceFilter('over500')}>Acima de R$ 500</li>
+          {availablePrices.under200 && (
+            <li className={priceFilter === 'under200' ? 'active' : ''} onClick={() => setPriceFilter('under200')}>Até R$ 200</li>
+          )}
+          {availablePrices.between200And500 && (
+            <li className={priceFilter === '200-500' ? 'active' : ''} onClick={() => setPriceFilter('200-500')}>R$ 200 - R$ 500</li>
+          )}
+          {availablePrices.over500 && (
+            <li className={priceFilter === 'over500' ? 'active' : ''} onClick={() => setPriceFilter('over500')}>Acima de R$ 500</li>
+          )}
         </ul>
       </div>
     </aside>
@@ -168,6 +185,9 @@ const GiftsPublicPage: React.FC = () => {
         <div className="gp-header-content">
           <h1>Lista de Presentes</h1>
           <p>Laís & Luan · 07.11.2026</p>
+          <p className="gp-early-note">
+            Caso queira nos presentear antecipadamente, preparamos esta lista com muito carinho. Agradecemos o seu amor e generosidade!
+          </p>
         </div>
 
         <div className="gp-tools">

@@ -50,6 +50,19 @@
   color: var(--mk-text-sub);
 }
 
+.gp-early-note {
+  font-size: 0.85rem !important;
+  color: var(--mk-text-sub);
+  margin-top: 1rem !important;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  opacity: 0.8;
+}
+
 .gp-back {
   position: absolute;
   left: 2rem;

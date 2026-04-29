@@ -318,7 +318,9 @@ const Envelope: React.FC = () => {
                 <h2 className="inv-sec-title">Sugestão de Presente</h2>
               </div>
               <div className="inv-sec-body">
-                <p className="inv-rsvp-intro" style={{ color: '#6a6a60' }}>Se desejar nos presentear:</p>
+                <p className="inv-rsvp-intro" style={{ color: '#6a6a60', marginBottom: '1.5rem' }}>
+                  Caso queira nos presentear antecipadamente, preparamos uma lista de sugestões com muito carinho:
+                </p>
                 <div className="inv-gift-actions-top" style={{ marginBottom: '2.5rem', width: '100%' }}>
                   <Link to="/presentes" className="inv-btn-solid-olive">
                     Ver Lista de Presentes <ArrowRight size={20} />
