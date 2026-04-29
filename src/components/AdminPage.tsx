@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Users, Gift, Trash2, Plus, Search, CheckCircle2, Star, X, Check, LogOut, CreditCard, MessageCircle, Mail, Phone, Hash, AlertCircle, Pencil } from 'lucide-react';
+import { Users, Gift, Trash2, Plus, Search, CheckCircle2, Star, X, Check, CreditCard, MessageCircle, Mail, Phone, Hash, AlertCircle, Pencil } from 'lucide-react';
 import { api, type Confirmation, type Gift as GiftType, type Category } from '../services/api';
 import { maskPixKey, unmaskValue, maskPhone, maskCurrency, parseCurrency } from '../utils/pix';
 import './AdminPage.css';
