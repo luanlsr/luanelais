@@ -39,9 +39,11 @@ const GiftsPublicPage: React.FC = () => {
     let result = [...allGifts];
 
     if (searchTerm) {
+      const term = searchTerm.toLowerCase();
       result = result.filter(g =>
-        g.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        g.brand?.toLowerCase().includes(searchTerm.toLowerCase())
+        g.title.toLowerCase().includes(term) ||
+        g.brand?.toLowerCase().includes(term) ||
+        (g.isBought && g.boughtBy?.toLowerCase().includes(term))
       );
     }
 
@@ -200,7 +202,7 @@ const GiftsPublicPage: React.FC = () => {
               <Search size={18} />
               <input
                 type="text"
-                placeholder="Busque por marca, produto..."
+                placeholder="Busque por produto, marca, convidado..."
                 value={searchTerm}
                 onChange={e => { setSearchTerm(e.target.value); setVisibleCount(ITEMS_PER_PAGE); }}
               />
