@@ -21,6 +21,7 @@ const GiftsPublicPage: React.FC = () => {
   const [guestName, setGuestName] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [addressCopied, setAddressCopied] = useState(false);
+  const [zoomedGift, setZoomedGift] = useState<GiftType | null>(null);
 
   const DELIVERY_DATA = {
     recipient: "Laís & Luan",
@@ -34,8 +35,8 @@ const GiftsPublicPage: React.FC = () => {
 
   // Lógica de Filtragem e Ordenação (Movido para cima para ser usado no observer)
   const filteredGifts = useMemo(() => {
-    // Filtrar primeiro os presentes já comprados para não exibi-los
-    let result = allGifts.filter(g => !g.isBought);
+    // Manter todos os presentes na lista (mesmo os comprados) para exibir o card desabilitado
+    let result = [...allGifts];
 
     if (searchTerm) {
       result = result.filter(g =>
@@ -60,6 +61,9 @@ const GiftsPublicPage: React.FC = () => {
 
     if (sortOrder === 'low-high') result.sort((a, b) => a.price - b.price);
     else if (sortOrder === 'high-low') result.sort((a, b) => b.price - a.price);
+
+    // Mover os presentes comprados para o final da lista
+    result.sort((a, b) => (a.isBought === b.isBought ? 0 : a.isBought ? 1 : -1));
 
     return result;
   }, [allGifts, searchTerm, categoryFilter, brandFilter, priceFilter, sortOrder]);
@@ -239,9 +243,15 @@ const GiftsPublicPage: React.FC = () => {
                 const priceParts = formatPrice(g.price);
                 const isLast = idx === visibleGifts.length - 1;
                 return (
-                  <div key={g.id} className={`gp-card ${g.isBought ? 'bought' : ''} `} ref={isLast ? lastElementRef : null}>
+                  <div key={g.id} className={`gp-card ${g.isBought ? 'is-bought-state' : ''} `} ref={isLast ? lastElementRef : null}>
                     {g.isFeatured && <div className="gp-badge"><Star size={10} fill="white" /> Sugestão dos Noivos</div>}
-                    <div className="gp-card-img">
+                    <div 
+                      className="gp-card-img" 
+                      onClick={() => {
+                        if (!g.isBought && g.imageUrl) setZoomedGift(g);
+                      }}
+                      style={{ cursor: !g.isBought && g.imageUrl ? 'zoom-in' : 'default' }}
+                    >
                       {g.imageUrl ? <img src={g.imageUrl} alt={g.title} loading="lazy" /> : <Gift size={48} strokeWidth={0.5} opacity={0.2} />}
                     </div>
                     <div className="gp-card-body">
@@ -254,8 +264,15 @@ const GiftsPublicPage: React.FC = () => {
                       </div>
 
                       {g.isBought ? (
-                        <div className="gp-bought-tag">
-                          <Check size={14} /> Presenteado por {g.boughtBy}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1.2rem' }}>
+                          <div className="gp-bought-tag" style={{ marginTop: '0', marginBottom: '0' }}>
+                            <Check size={14} /> Presenteado por {g.boughtBy}
+                          </div>
+                          {g.buyUrl && (
+                            <a href={g.buyUrl} target="_blank" rel="noopener noreferrer" className="gp-buy-btn" style={{ marginTop: '0', background: 'var(--mk-accent)', color: 'white', border: 'none' }}>
+                              Ver Presente
+                            </a>
+                          )}
                         </div>
                       ) : (
                         <button onClick={() => setBuyingGift(g)} className="gp-buy-btn">
@@ -369,6 +386,39 @@ const GiftsPublicPage: React.FC = () => {
                   {submitting ? 'Processando...' : 'Confirmar e Ver Link do Produto'}
                 </button>
               </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {zoomedGift && (
+          <motion.div
+            className="gp-mobile-modal"
+            style={{ zIndex: 10000, backgroundColor: 'rgba(0, 0, 0, 0.85)' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setZoomedGift(null)}
+          >
+            <motion.div
+              className="gp-zoom-container"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <button className="gp-zoom-close" onClick={() => setZoomedGift(null)}>
+                <X size={32} />
+              </button>
+              <div className="gp-zoom-img-wrap">
+                <img src={zoomedGift.imageUrl!} alt={zoomedGift.title} />
+              </div>
+              <div className="gp-zoom-caption">
+                <h3>{zoomedGift.title}</h3>
+                {zoomedGift.brand && <span className="gp-zoom-brand">{zoomedGift.brand}</span>}
+                {zoomedGift.subtitle && <p className="gp-zoom-subtitle">{zoomedGift.subtitle}</p>}
+              </div>
             </motion.div>
           </motion.div>
         )}
