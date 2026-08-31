@@ -6,15 +6,18 @@ import { api, type Gift as GiftType } from '../services/api';
 import './GiftsPublicPage.css';
 
 const ITEMS_PER_PAGE = 12;
+type StatusFilter = 'all' | 'received' | 'not-received';
+type SortOrder = 'latest' | 'low-high' | 'high-low';
 
 const GiftsPublicPage: React.FC = () => {
   const [allGifts, setAllGifts] = useState<GiftType[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [categoryFilter, setCategoryFilter] = useState('Todas');
   const [brandFilter, setBrandFilter] = useState('Todas');
   const [priceFilter, setPriceFilter] = useState<'all' | 'under200' | '200-500' | 'over500'>('all');
-  const [sortOrder, setSortOrder] = useState<'latest' | 'low-high' | 'high-low'>('latest');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [buyingGift, setBuyingGift] = useState<GiftType | null>(null);
@@ -47,6 +50,12 @@ const GiftsPublicPage: React.FC = () => {
       );
     }
 
+    if (statusFilter === 'received') {
+      result = result.filter(g => g.isBought);
+    } else if (statusFilter === 'not-received') {
+      result = result.filter(g => !g.isBought);
+    }
+
     if (categoryFilter !== 'Todas') {
       result = result.filter(g => g.category === categoryFilter);
     }
@@ -68,7 +77,7 @@ const GiftsPublicPage: React.FC = () => {
     result.sort((a, b) => (a.isBought === b.isBought ? 0 : a.isBought ? 1 : -1));
 
     return result;
-  }, [allGifts, searchTerm, categoryFilter, brandFilter, priceFilter, sortOrder]);
+  }, [allGifts, searchTerm, statusFilter, categoryFilter, brandFilter, priceFilter, sortOrder]);
 
   const observer = useRef<IntersectionObserver | null>(null);
   const lastElementRef = useCallback((node: HTMLDivElement | null) => {
@@ -91,18 +100,25 @@ const GiftsPublicPage: React.FC = () => {
     });
   }, []);
 
-  const availableGifts = useMemo(() => allGifts.filter(g => !g.isBought), [allGifts]);
+  const giftStatusCounts = useMemo(() => {
+    const received = allGifts.filter(g => g.isBought).length;
+    return {
+      all: allGifts.length,
+      received,
+      notReceived: allGifts.length - received
+    };
+  }, [allGifts]);
 
-  const categories = useMemo(() => ['Todas', ...new Set(availableGifts.map(g => g.category))].sort(), [availableGifts]);
-  const brands = useMemo(() => ['Todas', ...new Set(availableGifts.map(g => g.brand).filter(Boolean) as string[])].sort(), [availableGifts]);
+  const categories = useMemo(() => ['Todas', ...new Set(allGifts.map(g => g.category))].sort(), [allGifts]);
+  const brands = useMemo(() => ['Todas', ...new Set(allGifts.map(g => g.brand).filter(Boolean) as string[])].sort(), [allGifts]);
 
   const availablePrices = useMemo(() => {
     return {
-      under200: availableGifts.some(g => g.price <= 200),
-      between200And500: availableGifts.some(g => g.price > 200 && g.price <= 500),
-      over500: availableGifts.some(g => g.price > 500),
+      under200: allGifts.some(g => g.price <= 200),
+      between200And500: allGifts.some(g => g.price > 200 && g.price <= 500),
+      over500: allGifts.some(g => g.price > 500),
     };
-  }, [availableGifts]);
+  }, [allGifts]);
 
   const visibleGifts = filteredGifts.slice(0, visibleCount);
 
@@ -127,7 +143,7 @@ const GiftsPublicPage: React.FC = () => {
       setAllGifts(prev => prev.map(g => g.id === buyingGift.id ? { ...g, isBought: true, boughtBy: guestName.trim() } : g));
       setBuyingGift(null);
       setGuestName('');
-    } catch (err) {
+    } catch {
       alert('Erro ao marcar presente. Tente novamente.');
     } finally {
       setSubmitting(false);
@@ -140,8 +156,31 @@ const GiftsPublicPage: React.FC = () => {
     setTimeout(() => setAddressCopied(false), 2000);
   };
 
+  const updateStatusFilter = (status: StatusFilter) => {
+    setStatusFilter(status);
+    setVisibleCount(ITEMS_PER_PAGE);
+  };
+
   const Sidebar = () => (
     <aside className="gp-sidebar">
+      <div className="gp-sidebar-section">
+        <h3>Status</h3>
+        <ul className="gp-sidebar-list">
+          <li className={statusFilter === 'all' ? 'active' : ''} onClick={() => updateStatusFilter('all')}>
+            <span>Todos</span>
+            <span className="gp-filter-count">{giftStatusCounts.all}</span>
+          </li>
+          <li className={statusFilter === 'received' ? 'active' : ''} onClick={() => updateStatusFilter('received')}>
+            <span>Recebidos</span>
+            <span className="gp-filter-count">{giftStatusCounts.received}</span>
+          </li>
+          <li className={statusFilter === 'not-received' ? 'active' : ''} onClick={() => updateStatusFilter('not-received')}>
+            <span>Não recebidos</span>
+            <span className="gp-filter-count">{giftStatusCounts.notReceived}</span>
+          </li>
+        </ul>
+      </div>
+
       <div className="gp-sidebar-section">
         <h3>Categorias</h3>
         <ul className="gp-sidebar-list">
@@ -211,13 +250,39 @@ const GiftsPublicPage: React.FC = () => {
               <button className="gp-mobile-filter-btn" onClick={() => setShowMobileFilters(true)}>
                 <SlidersHorizontal size={18} /> Filtros
               </button>
-              <select className="gp-sort-select" value={sortOrder} onChange={e => setSortOrder(e.target.value as any)}>
+              <select className="gp-sort-select" value={sortOrder} onChange={e => setSortOrder(e.target.value as SortOrder)}>
                 <option value="latest">Mais Recentes</option>
                 <option value="low-high">Menor Preço</option>
                 <option value="high-low">Maior Preço</option>
               </select>
             </div>
           </div>
+        </div>
+        <div className="gp-mobile-status-filter" aria-label="Filtrar presentes por status">
+          <button
+            type="button"
+            className={statusFilter === 'all' ? 'active' : ''}
+            aria-pressed={statusFilter === 'all'}
+            onClick={() => updateStatusFilter('all')}
+          >
+            Todos <span>{giftStatusCounts.all}</span>
+          </button>
+          <button
+            type="button"
+            className={statusFilter === 'received' ? 'active' : ''}
+            aria-pressed={statusFilter === 'received'}
+            onClick={() => updateStatusFilter('received')}
+          >
+            Recebidos <span>{giftStatusCounts.received}</span>
+          </button>
+          <button
+            type="button"
+            className={statusFilter === 'not-received' ? 'active' : ''}
+            aria-pressed={statusFilter === 'not-received'}
+            onClick={() => updateStatusFilter('not-received')}
+          >
+            Não recebidos <span>{giftStatusCounts.notReceived}</span>
+          </button>
         </div>
       </header>
 
@@ -237,7 +302,7 @@ const GiftsPublicPage: React.FC = () => {
             <div className="gp-empty">
               <Gift size={40} strokeWidth={1} />
               <p>Nenhum presente encontrado.</p>
-              <button onClick={() => { setSearchTerm(''); setPriceFilter('all'); setCategoryFilter('Todas'); setBrandFilter('Todas'); }} className="gp-buy-btn" style={{ marginTop: '1rem' }}>Ver Tudo</button>
+              <button onClick={() => { setSearchTerm(''); setStatusFilter('all'); setPriceFilter('all'); setCategoryFilter('Todas'); setBrandFilter('Todas'); setVisibleCount(ITEMS_PER_PAGE); }} className="gp-buy-btn" style={{ marginTop: '1rem' }}>Ver Tudo</button>
             </div>
           ) : (
             <div className="gp-grid">
