@@ -65,14 +65,12 @@ const Envelope: React.FC = () => {
     '/images/laiseluan10.jpg',
     '/images/laiseluan11.jpg',
     '/images/laiseluan12.jpg',
-    '/images/laiseluan13.jpg',
     '/images/laiseluan14.jpg',
     '/images/laiseluan15.jpg',
     '/images/laiseluan16.jpg',
     '/images/laiseluan17.jpg',
     '/images/laiseluan18.jpg',
     '/images/laiseluan19.jpg',
-    '/images/laiseluan20.jpg',
   ];
 
   const [scrolled, setScrolled] = useState(false);
