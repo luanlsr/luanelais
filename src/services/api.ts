@@ -5,7 +5,6 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const WEDDING_ID = 'c28206d4-9c4b-4cb3-8a4a-9045e7b0bd8a';
 const CONFIRMED_GUESTS_TABLE = 'convidados_confirmados';
-const LEGACY_CONFIRMATIONS_TABLE = 'confirmacoes';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -71,16 +70,6 @@ interface GiftCategoryJoin {
   name?: string;
 }
 
-type SupabaseTableError = {
-  code?: string;
-  message?: string;
-} | null;
-
-const isConfirmedGuestsTableMissing = (error: SupabaseTableError) => (
-  error?.code === 'PGRST205' ||
-  (error?.message?.includes('convidados_confirmados') && error.message.includes('schema cache'))
-);
-
 class WeddingAPI {
   /* ─────────── RSVP (Confirmations) ─────────── */
 
@@ -102,20 +91,11 @@ class WeddingAPI {
   }
 
   async getConfirmations(): Promise<Confirmation[]> {
-    let { data, error } = await supabase
+    const { data, error } = await supabase
       .from(CONFIRMED_GUESTS_TABLE)
       .select('*')
       .eq('wedding_id', WEDDING_ID)
       .order('created_at', { ascending: false });
-
-    if (isConfirmedGuestsTableMissing(error)) {
-      console.warn('Tabela convidados_confirmados ainda não encontrada; lendo convidados de confirmacoes temporariamente.');
-      ({ data, error } = await supabase
-        .from(LEGACY_CONFIRMATIONS_TABLE)
-        .select('*')
-        .eq('wedding_id', WEDDING_ID)
-        .order('created_at', { ascending: false }));
-    }
 
     if (error) {
       console.error('Erro ao buscar convidados confirmados:', error);
@@ -135,19 +115,11 @@ class WeddingAPI {
   }
 
   async removeConfirmation(id: string): Promise<void> {
-    let { error } = await supabase
+    const { error } = await supabase
       .from(CONFIRMED_GUESTS_TABLE)
       .delete()
       .eq('id', id)
       .eq('wedding_id', WEDDING_ID);
-
-    if (isConfirmedGuestsTableMissing(error)) {
-      ({ error } = await supabase
-        .from(LEGACY_CONFIRMATIONS_TABLE)
-        .delete()
-        .eq('id', id)
-        .eq('wedding_id', WEDDING_ID));
-    }
 
     if (error) throw error;
   }
@@ -160,35 +132,20 @@ class WeddingAPI {
     if (data.isAttending !== undefined) updatePayload.is_attending = data.isAttending;
     if (data.children !== undefined) updatePayload.children = data.isAttending === false ? [] : data.children;
 
-    let { error } = await supabase
+    const { error } = await supabase
       .from(CONFIRMED_GUESTS_TABLE)
       .update(updatePayload)
       .eq('id', id)
       .eq('wedding_id', WEDDING_ID);
 
-    if (isConfirmedGuestsTableMissing(error)) {
-      ({ error } = await supabase
-        .from(LEGACY_CONFIRMATIONS_TABLE)
-        .update(updatePayload)
-        .eq('id', id)
-        .eq('wedding_id', WEDDING_ID));
-    }
-
     if (error) throw error;
   }
 
   async getAdminStats() {
-    let { data, error } = await supabase
+    const { data, error } = await supabase
       .from(CONFIRMED_GUESTS_TABLE)
       .select('id, children')
       .eq('wedding_id', WEDDING_ID);
-
-    if (isConfirmedGuestsTableMissing(error)) {
-      ({ data, error } = await supabase
-        .from(LEGACY_CONFIRMATIONS_TABLE)
-        .select('id, children')
-        .eq('wedding_id', WEDDING_ID));
-    }
 
     if (error || !data) return { totalGuests: 0, totalConfirmations: 0 };
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Users, Gift, CheckCircle2, Navigation, Copy, ArrowRight, Trash2, Plus, Volume2, VolumeX, Check, X } from 'lucide-react';
+import { MapPin, Users, Gift, Images, CheckCircle2, Navigation, Copy, ArrowRight, Trash2, Plus, Volume2, VolumeX, Check, X } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { api } from '../services/api';
 import { generatePixPayload, maskPhone } from '../utils/pix';
@@ -102,7 +102,7 @@ const Envelope: React.FC = () => {
       });
     }, observerOptions);
 
-    const sections = ['cerimonia', 'rsvp', 'presentes'];
+    const sections = ['galeria', 'cerimonia', 'rsvp', 'presentes'];
     sections.forEach((id) => {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
@@ -147,6 +147,13 @@ const Envelope: React.FC = () => {
     setIsPlaying(!isPlaying);
   };
 
+  const resetInviteConfirmation = () => {
+    setRsvpStatus('idle');
+    setFormData({ fullName: '', phone: '', email: '', isAttending: true });
+    setChildren([]);
+    setHasChildren(null);
+  };
+
   const addChild = () => setChildren([...children, { name: '', age: '' }]);
   const removeChild = (index: number) => setChildren(children.filter((_, i) => i !== index));
   const updateChild = (index: number, field: 'name' | 'age', value: string) => {
@@ -155,14 +162,13 @@ const Envelope: React.FC = () => {
     )));
   };
 
-
   const handleConfirm = async (e: React.FormEvent) => {
     e.preventDefault();
     setRsvpStatus('loading');
 
     try {
       const formattedChildren = children.map(c => ({
-        name: c.name.trim().split(' ')[0], // Apenas primeiro nome
+        name: c.name.trim().split(' ')[0],
         age: c.age
       }));
 
@@ -228,6 +234,7 @@ const Envelope: React.FC = () => {
                 L & L
               </div>
               <nav className="inv-nav-links">
+                <a href="#galeria" className={activeSection === 'galeria' ? 'active' : ''}>Galeria</a>
                 <a href="#cerimonia" className={activeSection === 'cerimonia' ? 'active' : ''}>Cerimônia</a>
                 <a href="#rsvp" className={activeSection === 'rsvp' ? 'active' : ''}>Participar</a>
                 <a href="#presentes" className={activeSection === 'presentes' ? 'active' : ''}>Presentes</a>
@@ -289,6 +296,25 @@ const Envelope: React.FC = () => {
           </div>
 
           <div className="inv-sections-vertical">
+            <section id="galeria" className="inv-section-full inv-gallery-section">
+              <div className="inv-sec-header">
+                <div className="inv-sec-icon"><Images size={20} /></div>
+                <h2 className="inv-sec-title">Galeria de Fotos</h2>
+              </div>
+              <div className="inv-gallery-body">
+                <p className="inv-gallery-intro">
+                  Alguns registros da nossa história, para deixar este convite com a nossa cara.
+                </p>
+                <div className="inv-gallery-grid">
+                  {photos.map((photo, index) => (
+                    <figure key={photo} className={`inv-gallery-item item-${(index % 7) + 1}`}>
+                      <img src={photo} alt={`Laís e Luan - foto ${index + 1}`} loading="lazy" />
+                    </figure>
+                  ))}
+                </div>
+              </div>
+            </section>
+
             <section id="cerimonia" className="inv-section-full">
               <div className="inv-sec-header">
                 <div className="inv-sec-icon"><MapPin size={20} /></div>
@@ -326,10 +352,7 @@ const Envelope: React.FC = () => {
                       <strong>Atenção:</strong> O preenchimento é individual. Caso o seu convite seja extensivo a mais pessoas, pedimos que envie uma resposta separadamente para <strong>cada pessoa</strong>. Filhos (até 12 anos) podem ser adicionados ao final do formulário.
                     </p>
                     <button onClick={() => {
-                      setRsvpStatus('idle');
-                      setFormData({ fullName: '', phone: '', email: '', isAttending: true });
-                      setChildren([]);
-                      setHasChildren(null);
+                      resetInviteConfirmation();
                       setIsRSVPModalOpen(true);
                     }} className="inv-btn-solid">Responder Convite</button>
                   </div>
@@ -341,13 +364,10 @@ const Envelope: React.FC = () => {
                   {rsvpStatus === 'success' && (
                     <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="inv-success">
                       <CheckCircle2 size={52} />
-                      <h3>{formData.isAttending ? 'Confirmado com Sucesso!' : 'Obrigado por nos avisar!'}</h3>
-                      <p>{formData.isAttending ? 'Mal podemos esperar para celebrar com você.' : 'Sentiremos sua falta, mas agradecemos o carinho.'}</p>
+                      <h3>Confirmado com Sucesso!</h3>
+                      <p>Mal podemos esperar para celebrar com você.</p>
                       <button onClick={() => {
-                        setRsvpStatus('idle');
-                        setFormData({ fullName: '', phone: '', email: '', isAttending: true });
-                        setChildren([]);
-                        setHasChildren(null);
+                        resetInviteConfirmation();
                       }} className="inv-btn-ghost">Confirmar outra pessoa</button>
                     </motion.div>
                   )}
@@ -522,13 +542,9 @@ const Envelope: React.FC = () => {
               transition={{ type: 'spring', damping: 24, stiffness: 220 }}
             >
               <CheckCircle2 size={52} />
-              <h3>
-                {formData.isAttending ? 'Confirmação de presença recebida!' : 'Resposta registrada com carinho!'}
-              </h3>
+              <h3>Confirmação de presença recebida!</h3>
               <p>
-                {formData.isAttending
-                  ? 'Que alegria saber que você estará conosco. Vamos abrir a lista de presentes para você.'
-                  : 'Obrigado por nos avisar. Vamos abrir a lista de presentes caso queira nos presentear.'}
+                Que alegria saber que você estará conosco. Vamos abrir a lista de presentes para você.
               </p>
             </motion.div>
           </motion.div>
@@ -550,136 +566,129 @@ const Envelope: React.FC = () => {
               </div>
 
               <form onSubmit={handleConfirm} className="inv-rsvp-form">
-                {(() => {
-                  return (
-                    <>
-                      <div className="rsvp-attendance-toggle">
-                        <button
-                          type="button"
-                          className={`attendance-btn btn-yes ${formData.isAttending ? 'active' : ''}`}
-                          onClick={() => setFormData({ ...formData, isAttending: true })}
-                        >
-                          <Check size={16} /> Sim, eu vou!
-                        </button>
-                        <button
-                          type="button"
-                          className={`attendance-btn btn-no ${!formData.isAttending ? 'active' : ''}`}
-                          onClick={() => {
-                            setFormData({ ...formData, isAttending: false });
-                            setChildren([]);
-                          }}
-                        >
-                          <X size={16} /> Não poderei ir
-                        </button>
-                      </div>
+                <div className="rsvp-attendance-toggle">
+                  <button
+                    type="button"
+                    className={`attendance-btn btn-yes ${formData.isAttending ? 'active' : ''}`}
+                    onClick={() => setFormData({ ...formData, isAttending: true })}
+                  >
+                    <Check size={16} /> Sim, eu vou!
+                  </button>
+                  <button
+                    type="button"
+                    className={`attendance-btn btn-no ${!formData.isAttending ? 'active' : ''}`}
+                    onClick={() => {
+                      setFormData({ ...formData, isAttending: false });
+                      setChildren([]);
+                    }}
+                  >
+                    <X size={16} /> Não poderei ir
+                  </button>
+                </div>
 
-                      <div className="rsvp-field-group">
-                        <label>Nome Completo</label>
-                        <input
-                          type="text"
-                          placeholder="Ex: João da Silva"
-                          value={formData.fullName}
-                          onChange={e => setFormData({ ...formData, fullName: e.target.value })}
-                          required
-                        />
-                        {!isNameValid && formData.fullName.length > 0 && (
-                          <span style={{ fontSize: '0.65rem', color: '#ff8a8a', marginTop: '0.3rem' }}>Por favor, informe seu nome e sobrenome.</span>
-                        )}
-                      </div>
+                <div className="rsvp-field-group">
+                  <label>Nome Completo</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: João da Silva"
+                    value={formData.fullName}
+                    onChange={e => setFormData({ ...formData, fullName: e.target.value })}
+                    required
+                  />
+                  {!isNameValid && formData.fullName.length > 0 && (
+                    <span style={{ fontSize: '0.65rem', color: '#ff8a8a', marginTop: '0.3rem' }}>Por favor, informe seu nome e sobrenome.</span>
+                  )}
+                </div>
 
-                      {formData.isAttending && (
-                        <div className="rsvp-field-row">
-                          <div className="rsvp-field-group">
-                            <label>WhatsApp / Telefone *</label>
+                {formData.isAttending && (
+                  <div className="rsvp-field-row">
+                    <div className="rsvp-field-group">
+                      <label>WhatsApp / Telefone *</label>
+                      <input
+                        type="tel"
+                        placeholder="(00) 00000-0000"
+                        value={formData.phone}
+                        onChange={e => setFormData({ ...formData, phone: maskPhone(e.target.value) })}
+                        required
+                      />
+                      {!isPhoneValid && numericPhone.length > 0 && (
+                        <span style={{ fontSize: '0.65rem', color: '#ff8a8a', marginTop: '0.3rem' }}>Informe o DDD + 9 dígitos.</span>
+                      )}
+                    </div>
+                    <div className="rsvp-field-group">
+                      <label>E-mail (Opcional)</label>
+                      <input
+                        type="email"
+                        placeholder="seu@email.com"
+                        value={formData.email}
+                        onChange={e => setFormData({ ...formData, email: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {formData.isAttending && (
+                  <div className="rsvp-children-section" style={{ marginTop: '1.5rem' }}>
+                    <label className="children-question-label">
+                      Irá levar filhos (até 12 anos)?
+                    </label>
+                    <div className="children-radio-group">
+                      <button
+                        type="button"
+                        className={`radio-option ${hasChildren === true ? 'active' : ''}`}
+                        onClick={() => {
+                          setHasChildren(true);
+                          if (children.length === 0) addChild();
+                        }}
+                      >
+                        Sim
+                      </button>
+                      <button
+                        type="button"
+                        className={`radio-option ${hasChildren === false ? 'active' : ''}`}
+                        onClick={() => {
+                          setHasChildren(false);
+                          setChildren([]);
+                        }}
+                      >
+                        Não
+                      </button>
+                    </div>
+
+                    {hasChildren === true && (
+                      <div className="rsvp-children-list">
+                        <div className="rsvp-children-header">
+                          <button type="button" onClick={addChild} className="btn-add-child">
+                            <Plus size={14} /> Adicionar outro filho
+                          </button>
+                        </div>
+
+                        {children.map((child, idx) => (
+                          <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} key={idx} className="rsvp-child-row">
                             <input
-                              type="tel"
-                              placeholder="(00) 00000-0000"
-                              value={formData.phone}
-                              onChange={e => setFormData({ ...formData, phone: maskPhone(e.target.value) })}
+                              placeholder="Nome do filho"
+                              value={child.name}
+                              onChange={e => updateChild(idx, 'name', e.target.value)}
+                              required
+                              style={{ flex: 2 }}
+                            />
+                            <input
+                              placeholder="Idade"
+                              type="text"
+                              style={{ flex: 1, minWidth: '70px' }}
+                              value={child.age}
+                              onChange={e => updateChild(idx, 'age', e.target.value)}
                               required
                             />
-                            {!isPhoneValid && numericPhone.length > 0 && (
-                              <span style={{ fontSize: '0.65rem', color: '#ff8a8a', marginTop: '0.3rem' }}>Informe o DDD + 9 dígitos.</span>
-                            )}
-                          </div>
-                          <div className="rsvp-field-group">
-                            <label>E-mail (Opcional)</label>
-                            <input
-                              type="email"
-                              placeholder="seu@email.com"
-                              value={formData.email}
-                              onChange={e => setFormData({ ...formData, email: e.target.value })}
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {formData.isAttending && (
-                        <div className="rsvp-children-section" style={{ marginTop: '1.5rem' }}>
-                          <label className="children-question-label">
-                            Irá levar filhos (até 12 anos)?
-                          </label>
-                          <div className="children-radio-group">
-                            <button
-                              type="button"
-                              className={`radio-option ${hasChildren === true ? 'active' : ''}`}
-                              onClick={() => {
-                                setHasChildren(true);
-                                if (children.length === 0) addChild();
-                              }}
-                            >
-                              Sim
+                            <button type="button" onClick={() => removeChild(idx)} className="btn-remove-child">
+                              <Trash2 size={16} />
                             </button>
-                            <button
-                              type="button"
-                              className={`radio-option ${hasChildren === false ? 'active' : ''}`}
-                              onClick={() => {
-                                setHasChildren(false);
-                                setChildren([]);
-                              }}
-                            >
-                              Não
-                            </button>
-                          </div>
-
-                          {hasChildren === true && (
-                            <div className="rsvp-children-list">
-                              <div className="rsvp-children-header">
-                                <button type="button" onClick={addChild} className="btn-add-child">
-                                  <Plus size={14} /> Adicionar outro filho
-                                </button>
-                              </div>
-
-                              {children.map((child, idx) => (
-                                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} key={idx} className="rsvp-child-row">
-                                  <input
-                                    placeholder="Nome do filho"
-                                    value={child.name}
-                                    onChange={e => updateChild(idx, 'name', e.target.value)}
-                                    required
-                                    style={{ flex: 2 }}
-                                  />
-                                  <input
-                                    placeholder="Idade"
-                                    type="text"
-                                    style={{ flex: 1, minWidth: '70px' }}
-                                    value={child.age}
-                                    onChange={e => updateChild(idx, 'age', e.target.value)}
-                                    required
-                                  />
-                                  <button type="button" onClick={() => removeChild(idx)} className="btn-remove-child">
-                                    <Trash2 size={16} />
-                                  </button>
-                                </motion.div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                    </>
-                  );
-                })()}
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </form>
 
               {/* Botões de Ação Fixos no Rodapé do Modal */}

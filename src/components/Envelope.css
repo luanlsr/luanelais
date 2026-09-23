@@ -763,7 +763,7 @@
 .inv-nav-links {
   display: flex;
   justify-content: center;
-  gap: 3rem;
+  gap: clamp(1.2rem, 2.6vw, 3rem);
 }
 
 .inv-nav-links a {
@@ -1048,6 +1048,74 @@
   margin: 0 auto;
 }
 
+.inv-gallery-section {
+  background: #fdfaf4;
+  justify-content: flex-start;
+  padding-top: 8rem;
+}
+
+.inv-gallery-body {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.inv-gallery-intro {
+  max-width: 560px;
+  margin: 0 auto 2.4rem;
+  color: #6a6a60;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.inv-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-flow: dense;
+  gap: 0.8rem;
+}
+
+.inv-gallery-item {
+  min-height: 210px;
+  margin: 0;
+  overflow: hidden;
+  background: #2D3820;
+  position: relative;
+}
+
+.inv-gallery-item img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  transition: transform 0.6s ease, filter 0.6s ease;
+}
+
+.inv-gallery-item:hover img {
+  transform: scale(1.045);
+  filter: saturate(1.05);
+}
+
+.inv-gallery-item.item-1,
+.inv-gallery-item.item-6 {
+  grid-column: span 2;
+  grid-row: span 2;
+  min-height: 430px;
+}
+
+.inv-gallery-item.item-3,
+.inv-gallery-item.item-5 {
+  grid-row: span 2;
+  min-height: 430px;
+}
+
+.inv-gallery-item.item-2,
+.inv-gallery-item.item-4,
+.inv-gallery-item.item-7 {
+  min-height: 210px;
+}
+
 .inv-section-olive {
   background: #2D3820;
   color: white;
@@ -1172,18 +1240,53 @@
   }
 
   .inv-nav-links {
-    gap: 0.8rem;
+    gap: 0.65rem;
   }
 
   .inv-nav-links a {
-    font-size: 0.58rem;
-    letter-spacing: 2px;
+    font-size: 0.54rem;
+    letter-spacing: 1.4px;
     text-shadow: 0 1px 4px rgba(0,0,0,0.3);
   }
 
   .inv-nav-audio-btn {
     margin-left: 0.5rem;
     padding: 0.2rem;
+  }
+
+  .inv-gallery-section {
+    min-height: auto;
+    padding: 5rem 1rem 4rem;
+  }
+
+  .inv-gallery-intro {
+    font-size: 0.82rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .inv-gallery-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .inv-gallery-item,
+  .inv-gallery-item.item-2,
+  .inv-gallery-item.item-4,
+  .inv-gallery-item.item-7 {
+    min-height: 170px;
+  }
+
+  .inv-gallery-item.item-1,
+  .inv-gallery-item.item-6 {
+    grid-column: span 2;
+    grid-row: span 1;
+    min-height: 260px;
+  }
+
+  .inv-gallery-item.item-3,
+  .inv-gallery-item.item-5 {
+    grid-row: span 1;
+    min-height: 220px;
   }
 }
 /* -- RSVP NEW FORM STYLES -- */
