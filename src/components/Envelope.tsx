@@ -14,17 +14,26 @@ const Envelope: React.FC = () => {
   const navigate = useNavigate();
 
   const shouldSkipEnvelope = location.state?.skipEnvelope === true;
-  const [coverStatus, setCoverStatus] = useState<CoverStatus>('closed');
+  const [coverStatus, setCoverStatus] = useState<CoverStatus>(shouldSkipEnvelope ? 'open' : 'closed');
   const [isPlaying, setIsPlaying] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
+  const [showPresenceConfirmation, setShowPresenceConfirmation] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const giftRedirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (shouldSkipEnvelope) {
-      setCoverStatus('open');
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [shouldSkipEnvelope, navigate, location.pathname]);
+
+  useEffect(() => {
+    return () => {
+      if (giftRedirectTimeoutRef.current) {
+        clearTimeout(giftRedirectTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // ── RSVP state ──
   const [rsvpStatus, setRsvpStatus] = useState<'idle' | 'loading' | 'success'>('idle');
@@ -44,13 +53,26 @@ const Envelope: React.FC = () => {
   const [pixCopied, setPixCopied] = useState(false);
 
   const photos = [
-    '/images/lualelais.jpeg',
-    '/images/lualelais2.jpeg',
-    '/images/lualelais3.jpeg',
-    '/images/lualelais4.jpeg',
-    '/images/lualelais5.jpeg',
-    '/images/lualelais6.jpeg',
-    '/images/lualelais7.jpeg',
+    '/images/laiseluan1.jpg',
+    '/images/laiseluan2.jpg',
+    '/images/laiseluan3.jpg',
+    '/images/laiseluan4.jpg',
+    '/images/laiseluan5.jpg',
+    '/images/laiseluan6.jpg',
+    '/images/laiseluan7.jpg',
+    '/images/laiseluan8.jpg',
+    '/images/laiseluan9.jpg',
+    '/images/laiseluan10.jpg',
+    '/images/laiseluan11.jpg',
+    '/images/laiseluan12.jpg',
+    '/images/laiseluan13.jpg',
+    '/images/laiseluan14.jpg',
+    '/images/laiseluan15.jpg',
+    '/images/laiseluan16.jpg',
+    '/images/laiseluan17.jpg',
+    '/images/laiseluan18.jpg',
+    '/images/laiseluan19.jpg',
+    '/images/laiseluan20.jpg',
   ];
 
   const [scrolled, setScrolled] = useState(false);
@@ -59,7 +81,6 @@ const Envelope: React.FC = () => {
 
   useEffect(() => {
     window.history.replaceState(null, '', '/');
-    setActiveSection('');
 
     const div = scrollRef.current;
     if (!div) return;
@@ -129,9 +150,9 @@ const Envelope: React.FC = () => {
   const addChild = () => setChildren([...children, { name: '', age: '' }]);
   const removeChild = (index: number) => setChildren(children.filter((_, i) => i !== index));
   const updateChild = (index: number, field: 'name' | 'age', value: string) => {
-    const newChildren = [...children];
-    (newChildren[index] as any)[field] = value;
-    setChildren(newChildren);
+    setChildren(children.map((child, childIndex) => (
+      childIndex === index ? { ...child, [field]: value } : child
+    )));
   };
 
 
@@ -154,6 +175,8 @@ const Envelope: React.FC = () => {
       });
 
       setRsvpStatus('success');
+      setIsRSVPModalOpen(false);
+      setShowPresenceConfirmation(true);
       confetti({
         particleCount: 150,
         spread: 70,
@@ -161,12 +184,14 @@ const Envelope: React.FC = () => {
         colors: ['#2D3820', '#c5a059', '#fdfaf4']
       });
 
+      giftRedirectTimeoutRef.current = setTimeout(() => {
+        setShowPresenceConfirmation(false);
+        navigate('/presentes', { state: { skipEnvelope: true } });
+      }, 2600);
     } catch {
       setIsRSVPModalOpen(false);
       setRsvpStatus('idle');
       alert('Erro ao confirmar. Tente novamente.');
-    } finally {
-      setIsRSVPModalOpen(false);
     }
   };
 
@@ -482,6 +507,33 @@ const Envelope: React.FC = () => {
 
       {/* ── RSVP MODAL ── */}
       <AnimatePresence>
+        {showPresenceConfirmation && (
+          <motion.div
+            className="presence-confirmation-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="presence-confirmation-card"
+              initial={{ opacity: 0, scale: 0.94, y: 18 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 18 }}
+              transition={{ type: 'spring', damping: 24, stiffness: 220 }}
+            >
+              <CheckCircle2 size={52} />
+              <h3>
+                {formData.isAttending ? 'Confirmação de presença recebida!' : 'Resposta registrada com carinho!'}
+              </h3>
+              <p>
+                {formData.isAttending
+                  ? 'Que alegria saber que você estará conosco. Vamos abrir a lista de presentes para você.'
+                  : 'Obrigado por nos avisar. Vamos abrir a lista de presentes caso queira nos presentear.'}
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+
         {isRSVPModalOpen && (
           <div className="rsvp-modal-overlay" onClick={() => setIsRSVPModalOpen(false)}>
             <motion.div

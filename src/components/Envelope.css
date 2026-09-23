@@ -1483,6 +1483,46 @@
 }
 
 /* RSVP Modal */
+.presence-confirmation-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 22000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(45, 56, 32, 0.62);
+  backdrop-filter: blur(8px);
+}
+
+.presence-confirmation-card {
+  width: min(420px, 100%);
+  padding: 2.5rem 2rem;
+  border-radius: 20px;
+  background: #fdfaf4;
+  color: #2D3820;
+  text-align: center;
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.28);
+}
+
+.presence-confirmation-card svg {
+  color: #c5a059;
+  margin-bottom: 1rem;
+}
+
+.presence-confirmation-card h3 {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  line-height: 1.2;
+  margin-bottom: 0.8rem;
+}
+
+.presence-confirmation-card p {
+  color: #6a6a60;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
 .rsvp-modal-overlay {
   position: fixed;
   inset: 0;

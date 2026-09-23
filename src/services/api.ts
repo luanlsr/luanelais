@@ -4,6 +4,8 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const WEDDING_ID = 'c28206d4-9c4b-4cb3-8a4a-9045e7b0bd8a';
+const CONFIRMED_GUESTS_TABLE = 'convidados_confirmados';
+const LEGACY_CONFIRMATIONS_TABLE = 'confirmacoes';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -44,32 +46,82 @@ export interface Gift {
   boughtBy?: string;
 }
 
+type ConfirmationUpdatePayload = Partial<{
+  full_name: string;
+  phone: string;
+  email: string;
+  is_attending: boolean;
+  children: Child[];
+}>;
+
+type GiftUpdatePayload = Partial<{
+  title: string;
+  subtitle: string;
+  brand: string;
+  category: string;
+  image_url: string;
+  price: number;
+  buy_url: string;
+  is_featured: boolean;
+  is_bought: boolean;
+  bought_by: string;
+}>;
+
+interface GiftCategoryJoin {
+  name?: string;
+}
+
+type SupabaseTableError = {
+  code?: string;
+  message?: string;
+} | null;
+
+const isConfirmedGuestsTableMissing = (error: SupabaseTableError) => (
+  error?.code === 'PGRST205' ||
+  (error?.message?.includes('convidados_confirmados') && error.message.includes('schema cache'))
+);
+
 class WeddingAPI {
   /* ─────────── RSVP (Confirmations) ─────────── */
 
   async submitRSVP(data: Omit<Confirmation, 'id' | 'createdAt'>): Promise<void> {
+    const payload = {
+      wedding_id: WEDDING_ID,
+      full_name: data.fullName,
+      phone: data.phone,
+      email: data.email,
+      is_attending: data.isAttending,
+      children: data.isAttending ? data.children : []
+    };
+
     const { error } = await supabase
-      .from('confirmacoes')
-      .insert([{
-        wedding_id: WEDDING_ID,
-        full_name: data.fullName,
-        phone: data.phone,
-        email: data.email,
-        is_attending: data.isAttending,
-        children: data.isAttending ? data.children : []
-      }]);
+      .from(CONFIRMED_GUESTS_TABLE)
+      .insert([payload]);
 
     if (error) throw error;
   }
 
   async getConfirmations(): Promise<Confirmation[]> {
-    const { data, error } = await supabase
-      .from('confirmacoes')
+    let { data, error } = await supabase
+      .from(CONFIRMED_GUESTS_TABLE)
       .select('*')
       .eq('wedding_id', WEDDING_ID)
       .order('created_at', { ascending: false });
 
-    if (error || !data) return [];
+    if (isConfirmedGuestsTableMissing(error)) {
+      console.warn('Tabela convidados_confirmados ainda não encontrada; lendo convidados de confirmacoes temporariamente.');
+      ({ data, error } = await supabase
+        .from(LEGACY_CONFIRMATIONS_TABLE)
+        .select('*')
+        .eq('wedding_id', WEDDING_ID)
+        .order('created_at', { ascending: false }));
+    }
+
+    if (error) {
+      console.error('Erro ao buscar convidados confirmados:', error);
+      return [];
+    }
+    if (!data) return [];
 
     return data.map(c => ({
       id: c.id,
@@ -83,37 +135,60 @@ class WeddingAPI {
   }
 
   async removeConfirmation(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('confirmacoes')
+    let { error } = await supabase
+      .from(CONFIRMED_GUESTS_TABLE)
       .delete()
       .eq('id', id)
       .eq('wedding_id', WEDDING_ID);
+
+    if (isConfirmedGuestsTableMissing(error)) {
+      ({ error } = await supabase
+        .from(LEGACY_CONFIRMATIONS_TABLE)
+        .delete()
+        .eq('id', id)
+        .eq('wedding_id', WEDDING_ID));
+    }
 
     if (error) throw error;
   }
 
   async updateConfirmation(id: string, data: Partial<Omit<Confirmation, 'id' | 'createdAt'>>): Promise<void> {
-    const updatePayload: any = {};
+    const updatePayload: ConfirmationUpdatePayload = {};
     if (data.fullName !== undefined) updatePayload.full_name = data.fullName;
     if (data.phone !== undefined) updatePayload.phone = data.phone;
     if (data.email !== undefined) updatePayload.email = data.email;
     if (data.isAttending !== undefined) updatePayload.is_attending = data.isAttending;
     if (data.children !== undefined) updatePayload.children = data.isAttending === false ? [] : data.children;
 
-    const { error } = await supabase
-      .from('confirmacoes')
+    let { error } = await supabase
+      .from(CONFIRMED_GUESTS_TABLE)
       .update(updatePayload)
       .eq('id', id)
       .eq('wedding_id', WEDDING_ID);
+
+    if (isConfirmedGuestsTableMissing(error)) {
+      ({ error } = await supabase
+        .from(LEGACY_CONFIRMATIONS_TABLE)
+        .update(updatePayload)
+        .eq('id', id)
+        .eq('wedding_id', WEDDING_ID));
+    }
 
     if (error) throw error;
   }
 
   async getAdminStats() {
-    const { data, error } = await supabase
-      .from('confirmacoes')
+    let { data, error } = await supabase
+      .from(CONFIRMED_GUESTS_TABLE)
       .select('id, children')
       .eq('wedding_id', WEDDING_ID);
+
+    if (isConfirmedGuestsTableMissing(error)) {
+      ({ data, error } = await supabase
+        .from(LEGACY_CONFIRMATIONS_TABLE)
+        .select('id, children')
+        .eq('wedding_id', WEDDING_ID));
+    }
 
     if (error || !data) return { totalGuests: 0, totalConfirmations: 0 };
 
@@ -145,20 +220,23 @@ class WeddingAPI {
     }
     if (!data) return [];
 
-    return data.map(g => ({
-      id: g.id,
-      title: g.title,
-      subtitle: g.subtitle,
-      brand: g.brand,
-      category: (g.categorias_presentes as any)?.name || 'Geral',
-      categoryId: g.category, // ID original da FK no banco
-      imageUrl: g.image_url,
-      price: Number(g.price),
-      buyUrl: g.buy_url,
-      isFeatured: g.is_featured,
-      isBought: g.is_bought,
-      boughtBy: g.bought_by
-    }));
+    return data.map(g => {
+      const category = g.categorias_presentes as GiftCategoryJoin | null;
+      return {
+        id: g.id,
+        title: g.title,
+        subtitle: g.subtitle,
+        brand: g.brand,
+        category: category?.name || 'Geral',
+        categoryId: g.category, // ID original da FK no banco
+        imageUrl: g.image_url,
+        price: Number(g.price),
+        buyUrl: g.buy_url,
+        isFeatured: g.is_featured,
+        isBought: g.is_bought,
+        boughtBy: g.bought_by
+      };
+    });
   }
 
   async addGift(gift: Omit<Gift, 'id'>): Promise<Gift> {
@@ -196,7 +274,7 @@ class WeddingAPI {
   }
 
   async updateGift(id: string, data: Partial<Omit<Gift, 'id'>>): Promise<void> {
-    const updatePayload: any = {};
+    const updatePayload: GiftUpdatePayload = {};
     if (data.title) updatePayload.title = data.title;
     if (data.subtitle) updatePayload.subtitle = data.subtitle;
     if (data.brand) updatePayload.brand = data.brand;
