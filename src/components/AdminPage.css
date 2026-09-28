@@ -424,6 +424,15 @@
   display: block;
 }
 
+.adm-guest-info .adm-confirmation-date {
+  color: var(--adm-text-sub);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0.78;
+}
+
 .adm-row-actions {
   display: flex;
   gap: 0.8rem;

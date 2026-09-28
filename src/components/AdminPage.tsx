@@ -118,6 +118,17 @@ const AdminPage: React.FC = () => {
     }).format(new Date(value));
   };
 
+  const formatConfirmationDate = (value?: string) => {
+    if (!value) return 'Data indisponível';
+
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(new Date(value));
+  };
+
   const openWhatsAppRemind = (id: string, phone: string, name: string) => {
     const cleanPhone = phone.replace(/\D/g, '');
     const finalPhone = cleanPhone.startsWith('55') ? cleanPhone : '55' + cleanPhone;
@@ -300,6 +311,9 @@ const AdminPage: React.FC = () => {
                         ) : (
                           <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>Avisou que não poderá ir</span>
                         )}
+                        <span className="adm-confirmation-date">
+                          Confirmado em {formatConfirmationDate(c.createdAt)}
+                        </span>
                       </div>
                       <div className="adm-row-actions hide-mobile" onClick={e => e.stopPropagation()}>
                         <button className="adm-btn-icon wa" style={{ background: isSent ? '#f0f0f0' : '#25D366' }} onClick={() => openWhatsAppRemind(c.id, c.phone, c.fullName)}>
@@ -338,7 +352,7 @@ const AdminPage: React.FC = () => {
                         </div>
                         <div className="adm-detail-item"><label><Mail size={10} /> E-mail</label><p>{c.email || '—'}</p></div>
                         <div className="adm-detail-item"><label><Phone size={10} /> Telefone</label><p>{maskPhone(c.phone)}</p></div>
-                        <div className="adm-detail-item"><label>Criado em</label><p>{formatDateTime(c.createdAt)}</p></div>
+                        <div className="adm-detail-item"><label>Confirmado em</label><p>{formatDateTime(c.createdAt)}</p></div>
                         <div className="adm-detail-item"><label>Atualizado em</label><p>{formatDateTime(c.updatedAt || c.createdAt)}</p></div>
                         {c.children && c.children.length > 0 && (
                           <div className="adm-detail-item" style={{ gridColumn: '1 / -1' }}>
