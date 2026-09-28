@@ -109,6 +109,15 @@ const AdminPage: React.FC = () => {
     return { main: parts[0], cents: parts[1] };
   };
 
+  const formatDateTime = (value?: string) => {
+    if (!value) return '—';
+
+    return new Intl.DateTimeFormat('pt-BR', {
+      dateStyle: 'short',
+      timeStyle: 'short'
+    }).format(new Date(value));
+  };
+
   const openWhatsAppRemind = (id: string, phone: string, name: string) => {
     const cleanPhone = phone.replace(/\D/g, '');
     const finalPhone = cleanPhone.startsWith('55') ? cleanPhone : '55' + cleanPhone;
@@ -329,6 +338,8 @@ const AdminPage: React.FC = () => {
                         </div>
                         <div className="adm-detail-item"><label><Mail size={10} /> E-mail</label><p>{c.email || '—'}</p></div>
                         <div className="adm-detail-item"><label><Phone size={10} /> Telefone</label><p>{maskPhone(c.phone)}</p></div>
+                        <div className="adm-detail-item"><label>Criado em</label><p>{formatDateTime(c.createdAt)}</p></div>
+                        <div className="adm-detail-item"><label>Atualizado em</label><p>{formatDateTime(c.updatedAt || c.createdAt)}</p></div>
                         {c.children && c.children.length > 0 && (
                           <div className="adm-detail-item" style={{ gridColumn: '1 / -1' }}>
                             <label><Hash size={10} /> Dependentes</label>

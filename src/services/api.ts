@@ -5,6 +5,7 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const WEDDING_ID = 'c28206d4-9c4b-4cb3-8a4a-9045e7b0bd8a';
 const CONFIRMED_GUESTS_TABLE = 'convidados_confirmados';
+const VALID_CONFIRMATIONS_FROM = '2026-09-23T00:00:00-03:00';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -27,6 +28,7 @@ export interface Confirmation {
   isAttending: boolean;
   children: Child[];
   createdAt?: string;
+  updatedAt?: string;
 }
 
 /* ── Gift ── */
@@ -66,6 +68,37 @@ type GiftUpdatePayload = Partial<{
   bought_by: string;
 }>;
 
+interface ConfirmationRow {
+  id: string;
+  full_name: string;
+  phone: string;
+  email: string;
+  is_attending: boolean | null;
+  children: Child[] | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+interface ConfirmationStatsRow {
+  id: string;
+  children: Child[] | null;
+}
+
+interface GiftRow {
+  id: string;
+  title: string;
+  subtitle?: string;
+  brand?: string;
+  category: string;
+  image_url: string;
+  price: number | string;
+  buy_url: string;
+  is_featured?: boolean;
+  is_bought?: boolean;
+  bought_by?: string;
+  categorias_presentes?: GiftCategoryJoin | null;
+}
+
 interface GiftCategoryJoin {
   name?: string;
 }
@@ -73,7 +106,7 @@ interface GiftCategoryJoin {
 class WeddingAPI {
   /* ─────────── RSVP (Confirmations) ─────────── */
 
-  async submitRSVP(data: Omit<Confirmation, 'id' | 'createdAt'>): Promise<void> {
+  async submitRSVP(data: Omit<Confirmation, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> {
     const payload = {
       wedding_id: WEDDING_ID,
       full_name: data.fullName,
@@ -95,6 +128,7 @@ class WeddingAPI {
       .from(CONFIRMED_GUESTS_TABLE)
       .select('*')
       .eq('wedding_id', WEDDING_ID)
+      .gte('created_at', VALID_CONFIRMATIONS_FROM)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -103,14 +137,15 @@ class WeddingAPI {
     }
     if (!data) return [];
 
-    return data.map(c => ({
+    return (data as ConfirmationRow[]).map(c => ({
       id: c.id,
       fullName: c.full_name,
       phone: c.phone,
       email: c.email,
       isAttending: c.is_attending !== false, // Default to true if null
       children: c.children || [],
-      createdAt: c.created_at
+      createdAt: c.created_at,
+      updatedAt: c.updated_at
     }));
   }
 
@@ -124,7 +159,7 @@ class WeddingAPI {
     if (error) throw error;
   }
 
-  async updateConfirmation(id: string, data: Partial<Omit<Confirmation, 'id' | 'createdAt'>>): Promise<void> {
+  async updateConfirmation(id: string, data: Partial<Omit<Confirmation, 'id' | 'createdAt' | 'updatedAt'>>): Promise<void> {
     const updatePayload: ConfirmationUpdatePayload = {};
     if (data.fullName !== undefined) updatePayload.full_name = data.fullName;
     if (data.phone !== undefined) updatePayload.phone = data.phone;
@@ -145,14 +180,15 @@ class WeddingAPI {
     const { data, error } = await supabase
       .from(CONFIRMED_GUESTS_TABLE)
       .select('id, children')
-      .eq('wedding_id', WEDDING_ID);
+      .eq('wedding_id', WEDDING_ID)
+      .gte('created_at', VALID_CONFIRMATIONS_FROM);
 
     if (error || !data) return { totalGuests: 0, totalConfirmations: 0 };
 
     const totalConfirmations = data.length;
     let totalGuests = totalConfirmations;
     
-    data.forEach(c => {
+    (data as ConfirmationStatsRow[]).forEach(c => {
       if (Array.isArray(c.children)) {
         totalGuests += c.children.length;
       }
@@ -177,7 +213,7 @@ class WeddingAPI {
     }
     if (!data) return [];
 
-    return data.map(g => {
+    return (data as GiftRow[]).map(g => {
       const category = g.categorias_presentes as GiftCategoryJoin | null;
       return {
         id: g.id,
