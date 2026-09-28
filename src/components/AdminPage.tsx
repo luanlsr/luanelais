@@ -311,9 +311,10 @@ const AdminPage: React.FC = () => {
                         ) : (
                           <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>Avisou que não poderá ir</span>
                         )}
-                        <span className="adm-confirmation-date">
-                          Confirmado em {formatConfirmationDate(c.createdAt)}
-                        </span>
+                      </div>
+                      <div className="adm-guest-confirmed-at">
+                        <label>Confirmado em</label>
+                        <strong>{formatConfirmationDate(c.createdAt)}</strong>
                       </div>
                       <div className="adm-row-actions hide-mobile" onClick={e => e.stopPropagation()}>
                         <button className="adm-btn-icon wa" style={{ background: isSent ? '#f0f0f0' : '#25D366' }} onClick={() => openWhatsAppRemind(c.id, c.phone, c.fullName)}>

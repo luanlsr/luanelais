@@ -424,13 +424,31 @@
   display: block;
 }
 
-.adm-guest-info .adm-confirmation-date {
+.adm-guest-confirmed-at {
+  width: 150px;
+  flex: 0 0 150px;
+  text-align: left;
+}
+
+.adm-guest-confirmed-at label {
+  display: block;
   color: var(--adm-text-sub);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-  opacity: 0.78;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  line-height: 1;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.adm-guest-confirmed-at strong {
+  display: block;
+  color: var(--adm-text);
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .adm-row-actions {
@@ -500,8 +518,20 @@
   .adm-stat-value { font-size: 1.3rem; } 
   .adm-stat-label { font-size: 0.55rem; margin-bottom: 0.2rem; }
   
-  .adm-row-main { padding: 1.2rem 1.5rem; }
+  .adm-row-main {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: 1.2rem 1.5rem;
+  }
   .adm-guest-info h4 { font-size: 1.1rem; }
+  .adm-guest-confirmed-at {
+    width: auto;
+    flex: 1 1 100%;
+    padding-top: 0.25rem;
+  }
+  .adm-guest-confirmed-at strong {
+    font-size: 0.9rem;
+  }
   
   .adm-guest-row.expanded .adm-row-detail {
     grid-template-columns: 1fr;
