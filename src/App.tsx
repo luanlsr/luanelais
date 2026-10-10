@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Envelope from './components/Envelope';
 import AdminPage from './components/AdminPage';
 import GiftsPublicPage from './components/GiftsPublicPage';
+import PhotoReminderPage from './components/PhotoReminderPage';
 import './App.css';
 
 function App() {
@@ -11,6 +12,7 @@ function App() {
       <Route path="/" element={<Envelope />} />
       <Route path="/admin" element={<AdminPage />} />
       <Route path="/presentes" element={<GiftsPublicPage />} />
+      <Route path="/memorias-do-grande-dia" element={<PhotoReminderPage />} />
 
       {/* Catch-all: qualquer rota desconhecida vai para / */}
       <Route path="*" element={<Navigate to="/" replace />} />
