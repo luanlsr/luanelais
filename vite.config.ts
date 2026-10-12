@@ -4,6 +4,28 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    proxy: {
+      '/photo-reminder-runtime': {
+        target: 'http://127.0.0.1:3001',
+        changeOrigin: true,
+      },
+      '/api': {
+        target: 'http://127.0.0.1:3001',
+        changeOrigin: true,
+        rewrite: (path) => `/photo-reminder-runtime${path}`,
+      },
+      '/image': {
+        target: 'http://127.0.0.1:3001',
+        changeOrigin: true,
+        rewrite: (path) => `/photo-reminder-runtime${path}`,
+      },
+      '/_next': {
+        target: 'http://127.0.0.1:3001',
+        changeOrigin: true,
+      },
+    },
+  },
   plugins: [
     react(),
     VitePWA({

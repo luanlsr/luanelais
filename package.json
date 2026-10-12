@@ -4,7 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "powershell -ExecutionPolicy Bypass -File scripts/dev-all.ps1",
+    "dev:landpage": "vite",
+    "dev:photo-reminder": "cd photo-reminder && npm run dev -- --port 3001",
+    "build:photo-reminder": "cd photo-reminder && npm run build",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

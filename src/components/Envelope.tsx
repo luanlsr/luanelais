@@ -53,24 +53,24 @@ const Envelope: React.FC = () => {
   const [pixCopied, setPixCopied] = useState(false);
 
   const photos = [
-    '/images/laiseluan1.jpg',
-    '/images/laiseluan2.jpg',
-    '/images/laiseluan3.jpg',
-    '/images/laiseluan4.jpg',
-    '/images/laiseluan5.jpg',
-    '/images/laiseluan6.jpg',
-    '/images/laiseluan7.jpg',
-    '/images/laiseluan8.jpg',
-    '/images/laiseluan9.jpg',
-    '/images/laiseluan10.jpg',
-    '/images/laiseluan11.jpg',
-    '/images/laiseluan12.jpg',
-    '/images/laiseluan14.jpg',
-    '/images/laiseluan15.jpg',
-    '/images/laiseluan16.jpg',
-    '/images/laiseluan17.jpg',
-    '/images/laiseluan18.jpg',
-    '/images/laiseluan19.jpg',
+    '/landing-images/laiseluan1.jpg',
+    '/landing-images/laiseluan2.jpg',
+    '/landing-images/laiseluan3.jpg',
+    '/landing-images/laiseluan4.jpg',
+    '/landing-images/laiseluan5.jpg',
+    '/landing-images/laiseluan6.jpg',
+    '/landing-images/laiseluan7.jpg',
+    '/landing-images/laiseluan8.jpg',
+    '/landing-images/laiseluan9.jpg',
+    '/landing-images/laiseluan10.jpg',
+    '/landing-images/laiseluan11.jpg',
+    '/landing-images/laiseluan12.jpg',
+    '/landing-images/laiseluan14.jpg',
+    '/landing-images/laiseluan15.jpg',
+    '/landing-images/laiseluan16.jpg',
+    '/landing-images/laiseluan17.jpg',
+    '/landing-images/laiseluan18.jpg',
+    '/landing-images/laiseluan19.jpg',
   ];
 
   const [scrolled, setScrolled] = useState(false);
@@ -236,6 +236,7 @@ const Envelope: React.FC = () => {
                 <a href="#cerimonia" className={activeSection === 'cerimonia' ? 'active' : ''}>Cerimônia</a>
                 <a href="#rsvp" className={activeSection === 'rsvp' ? 'active' : ''}>Participar</a>
                 <a href="#presentes" className={activeSection === 'presentes' ? 'active' : ''}>Presentes</a>
+                <Link to="/social" state={{ skipEnvelope: true }}>Álbum</Link>
               </nav>
             </div>
           </header>
@@ -500,7 +501,7 @@ const Envelope: React.FC = () => {
               animate={coverStatus === 'opening' ? { x: '-50%', y: '-100vh', opacity: 0 } : { x: '-50%', y: '-50%', opacity: 1 }}
               transition={panelTransition}
             >
-              <img src="/images/selo.png" alt="Lacre" className="env-seal-img" />
+              <img src="/landing-images/selo.png" alt="Lacre" className="env-seal-img" />
             </motion.div>
           </div>
         )}
