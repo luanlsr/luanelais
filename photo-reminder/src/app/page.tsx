@@ -81,15 +81,17 @@ export default function Home() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = async () => {
     if (typeof window === "undefined") return;
 
     // The social app is rendered inside the landing page, so OAuth must start
     // in the top-level window. Otherwise Google may complete the flow inside
     // the iframe and leave the parent page stuck on the login screen.
     const callbackUrl = `${window.location.origin}/social`;
-    const signInUrl = `/api/auth/signin/google?callbackUrl=${encodeURIComponent(callbackUrl)}`;
-    (window.top ?? window).location.assign(signInUrl);
+    const result = await signIn("google", { callbackUrl, redirect: false });
+    if (result?.url) {
+      (window.top ?? window).location.assign(result.url);
+    }
   };
 
   const handleLike = async (photoId: string) => {
