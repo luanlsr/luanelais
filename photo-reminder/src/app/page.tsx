@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Camera, Image as ImageIcon, UploadCloud, X, CheckCircle2, Heart, AlertCircle, LogOut, Home as HomeIcon, LayoutGrid, MessageSquare, User, Send, Users, Film } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 
 // --- Tipos ---
 type Photo = {
@@ -87,10 +87,34 @@ export default function Home() {
     // The social app is rendered inside the landing page, so OAuth must start
     // in the top-level window. Otherwise Google may complete the flow inside
     // the iframe and leave the parent page stuck on the login screen.
-    const callbackUrl = `${window.location.origin}/social`;
-    const result = await signIn("google", { callbackUrl, redirect: false });
-    if (result?.url) {
-      (window.top ?? window).location.assign(result.url);
+    const fallbackUrl = "/api/auth/signin/google?callbackUrl=%2Fsocial";
+    const fallbackTimer = window.setTimeout(() => {
+      (window.top ?? window).location.assign(fallbackUrl);
+    }, 1500);
+
+    try {
+      const callbackUrl = `${window.location.origin}/social`;
+      const csrfResponse = await fetch("/api/auth/csrf", { credentials: "same-origin" });
+      const { csrfToken } = await csrfResponse.json();
+
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = "/api/auth/signin/google";
+      form.target = "_top";
+
+      for (const [name, value] of Object.entries({ csrfToken, callbackUrl })) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
+    } catch {
+      window.clearTimeout(fallbackTimer);
+      setAuthError("Não foi possível iniciar o login com Google. Tente novamente.");
     }
   };
 
@@ -353,8 +377,13 @@ export default function Home() {
             Entre para compartilhar suas fotos e reviver a nossa história com todos os convidados.
           </p>
 
-          <button
-            onClick={handleGoogleSignIn}
+          <a
+            href="/api/auth/signin/google?callbackUrl=%2Fsocial"
+            target="_top"
+            onClick={(event) => {
+              event.preventDefault();
+              void handleGoogleSignIn();
+            }}
             className="login-card__button"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -364,7 +393,7 @@ export default function Home() {
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
             </svg>
             Entrar com Google
-          </button>
+          </a>
 
           {authError && (
             <p className="login-card__error" role="alert">

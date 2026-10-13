@@ -433,13 +433,13 @@ const AdminPage: React.FC = () => {
                     className={`adm-filter-btn ${giftFilter === 'bought' ? 'active' : ''}`}
                     onClick={() => setGiftFilter('bought')}
                   >
-                    Ganhos <span>{gifts.filter(g => g.isBought).length}</span>
+                    Pagos <span>{gifts.filter(g => g.isBought).length}</span>
                   </button>
                   <button 
                     className={`adm-filter-btn ${giftFilter === 'available' ? 'active' : ''}`}
                     onClick={() => setGiftFilter('available')}
                   >
-                    Disponíveis <span>{gifts.filter(g => !g.isBought).length}</span>
+                    Não pagos <span>{gifts.filter(g => !g.isBought).length}</span>
                   </button>
                 </div>
               </div>
